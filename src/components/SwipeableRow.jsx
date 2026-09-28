@@ -9,12 +9,10 @@ const MAX_DRAG = 128
 export default function SwipeableRow({ onEdit, onDelete, children }) {
   const [dragX, setDragX] = useState(0)
   const [dragging, setDragging] = useState(false)
-  const [settling, setSettling] = useState(false)
   const startXRef = useRef(0)
 
   function handlePointerDown(e) {
     setDragging(true)
-    setSettling(false)
     startXRef.current = e.clientX
     e.currentTarget.setPointerCapture(e.pointerId)
   }
@@ -30,7 +28,6 @@ export default function SwipeableRow({ onEdit, onDelete, children }) {
   function endDrag() {
     if (!dragging) return
     setDragging(false)
-    setSettling(true)
     if (dragX > THRESHOLD) {
       setDragX(0)
       onEdit()
@@ -75,7 +72,6 @@ export default function SwipeableRow({ onEdit, onDelete, children }) {
           touchAction: 'pan-y'
         }}
         className="relative bg-surface"
-        onTransitionEnd={() => setSettling(false)}
       >
         {children}
       </div>

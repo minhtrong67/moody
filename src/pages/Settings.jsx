@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import {
   Sun, Moon, Monitor, Smartphone, Bell, LineChart, CalendarRange,
-  Download, Trash2, LogOut, Check, X, Heart
+  Download, Trash2, LogOut, Heart
 } from 'lucide-react'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { useAuth } from '../context/AuthContext'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
@@ -74,12 +75,21 @@ export default function Settings() {
   }
 
   async function clearAll() {
-    for (const e of entries) await deleteEntry(e.id)
+    await Promise.all(entries.map((e) => deleteEntry(e.id)))
     setConfirmClear(false)
   }
 
   return (
     <div className="px-4 pt-6 pb-4 max-w-lg mx-auto page-enter">
+      <ConfirmDialog
+        open={confirmClear}
+        title="Xóa toàn bộ dữ liệu?"
+        description={`${entries.length} bản ghi sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.`}
+        confirmLabel="Xóa tất cả"
+        danger
+        onConfirm={clearAll}
+        onCancel={() => setConfirmClear(false)}
+      />
       <h1 className="font-display text-2xl mb-6">Cài đặt</h1>
 
       {user && (
@@ -195,29 +205,16 @@ export default function Settings() {
             Xuất dữ liệu (.json)
           </button>
           <p className="text-xs text-inkmuted px-1">Import: chọn file .json đã xuất trước đó để khôi phục (sẽ bổ sung ở bản sau).</p>
-          {!confirmClear ? (
-            <button
-              onClick={() => setConfirmClear(true)}
-              className="w-full flex items-center gap-3 text-left px-4 py-3 border border-mood-angry text-mood-angry rounded-card bg-mood-angry/10"
-            >
-              <span className="w-8 h-8 rounded-full bg-mood-angry/15 flex items-center justify-center shrink-0">
-                <Trash2 size={15} strokeWidth={2} />
-              </span>
-              Xóa toàn bộ dữ liệu
-            </button>
-          ) : (
-            <div className="border border-mood-angry rounded-card p-4 bg-mood-angry/5 pop-in">
-              <p className="text-sm mb-3">Xóa {entries.length} bản ghi? Không thể hoàn tác.</p>
-              <div className="flex gap-2">
-                <button onClick={clearAll} className="flex-1 flex items-center justify-center gap-1.5 bg-mood-angry text-oncolor rounded-full py-2 text-sm">
-                  <Check size={14} strokeWidth={2.2} /> Xóa
-                </button>
-                <button onClick={() => setConfirmClear(false)} className="flex-1 flex items-center justify-center gap-1.5 border border-line rounded-full py-2 text-sm bg-line/25">
-                  <X size={14} strokeWidth={2.2} /> Hủy
-                </button>
-              </div>
-            </div>
-          )}
+          <button
+            onClick={() => setConfirmClear(true)}
+            disabled={entries.length === 0}
+            className="w-full flex items-center gap-3 text-left px-4 py-3 border border-mood-angry text-mood-angry rounded-card bg-mood-angry/10 active:scale-[0.99] transition-transform disabled:opacity-40"
+          >
+            <span className="w-8 h-8 rounded-full bg-mood-angry/15 flex items-center justify-center shrink-0">
+              <Trash2 size={15} strokeWidth={2} />
+            </span>
+            Xóa toàn bộ dữ liệu
+          </button>
         </div>
       </SettingGroup>
 

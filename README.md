@@ -128,10 +128,14 @@ src/
 ├── main.jsx                       # Entry point, khởi tạo theme trước khi render
 │
 ├── context/
-│   └── AuthContext.jsx            # Trạng thái đăng nhập Google
+│   ├── AuthContext.jsx            # Trạng thái đăng nhập Google
+│   ├── MoodEntriesContext.jsx     # Dữ liệu check-in — nạp MỘT LẦN ở gốc app, dùng chung mọi trang
+│   ├── ActivitiesContext.jsx      # Hoạt động (mặc định + tùy chỉnh + thứ tự)
+│   ├── MoodsContext.jsx           # Emoji/tên hiển thị 5 mức mood
+│   └── ToastContext.jsx           # Thông báo nhẹ tự ẩn
 │
 ├── hooks/
-│   ├── useMoodEntries.js          # CRUD check-in — Firestore, fallback localStorage
+│   ├── useMoodEntries.js          # Re-export từ MoodEntriesContext (Firestore, fallback localStorage)
 │   ├── useActivities.js           # Hoạt động mặc định + tùy chỉnh (thêm/sửa/xóa/sắp xếp)
 │   ├── useMoods.js                # Emoji + tên hiển thị của 5 mức mood (có thể tùy chỉnh)
 │   ├── useInstallPrompt.js        # Bắt sự kiện beforeinstallprompt (PWA)
@@ -150,6 +154,8 @@ src/
 │   ├── Login.jsx                   # Màn hình đăng nhập / chế độ khách
 │   ├── AppShell.jsx                # Header + bottom nav (4 tab) + FAB check-in + scroll-to-top
 │   ├── Sidebar.jsx                 # Drawer menu đầy đủ (mở qua icon ☰ ở header)
+│   ├── Dialog.jsx                  # Dialog form (thêm/sửa) căn giữa
+│   ├── PageSkeleton.jsx            # Skeleton hiển thị khi trang đang tải (lazy route)
 │   ├── SwipeableRow.jsx            # Cử tay vuốt trái/phải cho card trong Lịch sử
 │   └── ConfirmDialog.jsx           # Hộp thoại xác nhận dùng lại nhiều nơi
 │
@@ -243,3 +249,9 @@ Deploy thư mục `dist/` lên bất kỳ static host nào (Firebase Hosting, Ve
 - Insights tự động (vd. "Mood tuần này cao hơn tuần trước")
 - Import dữ liệu từ file JSON đã xuất
 - Push notification chạy nền thật sự (service worker + push server)
+
+## Ghi chú hiệu năng
+
+- Dữ liệu (check-in, hoạt động, tâm trạng) được nạp **một lần** ở gốc app qua Context nên chuyển trang không bị tải lại.
+- Các trang được **lazy-load** (code splitting) và **preload khi trình duyệt rảnh**; thư viện PDF (`jspdf`, `html2canvas`) chỉ được nạp khi bấm xuất báo cáo.
+- Hộp thoại xác nhận (`ConfirmDialog`, `z-[80]`) luôn nằm trên mọi dialog/form khác.

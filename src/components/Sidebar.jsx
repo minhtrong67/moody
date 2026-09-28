@@ -29,7 +29,7 @@ export default function Sidebar({ open, onClose }) {
       >
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-line">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-primary text-oncolor flex items-center justify-center font-display text-sm">M</span>
+            <img src="/icons/icon-192.png" alt="Moody" className="w-9 h-9 rounded-xl shadow-sm" />
             <span className="font-display text-lg">Moody</span>
           </div>
           <button onClick={onClose} aria-label="Đóng menu" className="w-9 h-9 rounded-full bg-line/30 text-inkmuted flex items-center justify-center">

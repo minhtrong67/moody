@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Check, X, Settings2, Clock3, ArrowUp } from 'lucide-react'
+import { ArrowLeft, Plus, Check, Settings2, Clock3, ArrowUp, Loader2 } from 'lucide-react'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useActivities } from '../hooks/useActivities'
 import { useMoods } from '../hooks/useMoods'
 import { useToast } from '../context/ToastContext'
 import { todayISO } from '../lib/dateUtils'
-import BottomSheet from '../components/BottomSheet'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 function toDatetimeLocalValue(date) {
@@ -19,7 +18,7 @@ export default function CheckIn() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
   const { entries, addEntry, updateEntry } = useMoodEntries()
-  const { activities, addActivity } = useActivities()
+  const { activities } = useActivities()
   const { moods, moodByKey } = useMoods()
   const { showToast } = useToast()
   const noteRef = useRef(null)
@@ -39,9 +38,6 @@ export default function CheckIn() {
   const [note, setNote] = useState(existing?.note ?? '')
   const [datetime, setDatetime] = useState(defaultDatetime)
   const [saving, setSaving] = useState(false)
-  const [showAddActivity, setShowAddActivity] = useState(false)
-  const [newEmoji, setNewEmoji] = useState('')
-  const [newLabel, setNewLabel] = useState('')
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false)
 
@@ -68,14 +64,6 @@ export default function CheckIn() {
     const el = e.target
     el.style.height = 'auto'
     el.style.height = `${el.scrollHeight}px`
-  }
-
-  async function handleCreateActivity() {
-    if (!newLabel.trim()) return
-    await addActivity({ emoji: newEmoji.trim() || '✨', label: newLabel.trim() })
-    setNewEmoji('')
-    setNewLabel('')
-    setShowAddActivity(false)
   }
 
   async function performSave() {
@@ -118,7 +106,7 @@ export default function CheckIn() {
 
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-inkmuted bg-line/30 rounded-full pl-2.5 pr-3.5 py-1.5 mb-5"
+        className="flex items-center gap-1.5 text-sm text-inkmuted bg-line/30 rounded-full pl-2.5 pr-3.5 py-1.5 mb-5 active:scale-95 transition-transform"
       >
         <ArrowLeft size={15} strokeWidth={2.2} />
         Quay lại
@@ -147,7 +135,7 @@ export default function CheckIn() {
             className="flex flex-col items-center gap-2"
           >
             <span
-              className="w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2 transition-transform"
+              className="w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2 transition-transform active:scale-95"
               style={{
                 borderColor: mood === m.key ? m.color : 'rgb(var(--c-line))',
                 background: mood === m.key ? m.color + '33' : m.color + '14',
@@ -166,7 +154,7 @@ export default function CheckIn() {
           <p className="text-sm font-medium">Hoạt động trong ngày</p>
           <Link
             to="/manage/activities"
-            className="flex items-center gap-1.5 text-xs bg-line/25 text-inkmuted rounded-full pl-2 pr-3 py-1.5"
+            className="flex items-center gap-1.5 text-xs bg-line/25 text-inkmuted rounded-full pl-2 pr-3 py-1.5 active:scale-95 transition-transform"
           >
             <Settings2 size={12} strokeWidth={2.2} />
             Quản lý
@@ -180,7 +168,7 @@ export default function CheckIn() {
               <div key={a.id} className="flex flex-col items-center gap-1.5">
                 <button
                   onClick={() => toggleActivity(a.id)}
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-xl border transition-colors"
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-xl border transition-all active:scale-90"
                   style={{
                     borderColor: active ? 'rgb(var(--c-accent))' : 'rgb(var(--c-line))',
                     background: active ? 'rgb(var(--c-accent) / 0.85)' : 'rgb(var(--c-line) / 0.25)'
@@ -193,58 +181,17 @@ export default function CheckIn() {
             )
           })}
 
-          <div className="flex flex-col items-center gap-1.5">
-            <button
-              onClick={() => setShowAddActivity(true)}
+          <Link to="/manage/activities" className="flex flex-col items-center gap-1.5">
+            <span
               aria-label="Thêm hoạt động"
-              className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed border-accent/50 text-accent bg-accent/5"
+              className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed border-accent/50 text-accent bg-accent/5 transition-transform active:scale-90"
             >
               <Plus size={18} strokeWidth={2.4} />
-            </button>
+            </span>
             <span className="text-[10px] text-accent text-center leading-tight">Thêm mới</span>
-          </div>
+          </Link>
         </div>
       </div>
-
-      <BottomSheet open={showAddActivity} title="Thêm hoạt động mới" onClose={() => setShowAddActivity(false)}>
-        <p className="text-xs text-inkmuted mb-3">Nhập emoji và đặt tên cho hoạt động của riêng bạn</p>
-        <div className="flex gap-2 mb-4">
-          <div className="w-16 shrink-0">
-            <label className="block text-[11px] text-inkmuted mb-1 px-1">Emoji</label>
-            <input
-              value={newEmoji}
-              onChange={(e) => setNewEmoji(e.target.value.slice(-2))}
-              placeholder="😀"
-              className="w-full h-12 text-center text-xl border border-line rounded-lg bg-transparent focus:outline-none focus:border-accent"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-[11px] text-inkmuted mb-1 px-1">Tên hoạt động</label>
-            <input
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              placeholder="vd: Đọc sách"
-              autoFocus
-              className="w-full h-12 border border-line rounded-lg px-4 text-sm bg-transparent focus:outline-none focus:border-accent"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => setShowAddActivity(false)}
-            className="flex items-center justify-center gap-1.5 bg-line/30 text-inkmuted rounded-full py-3 text-sm"
-          >
-            <X size={15} strokeWidth={2.4} /> Hủy
-          </button>
-          <button
-            onClick={handleCreateActivity}
-            disabled={!newLabel.trim()}
-            className="flex items-center justify-center gap-1.5 bg-primary text-oncolor rounded-full py-3 text-sm disabled:opacity-40"
-          >
-            <Check size={15} strokeWidth={2.4} /> Lưu
-          </button>
-        </div>
-      </BottomSheet>
 
       <div className="mb-8">
         <p className="text-sm font-medium mb-3">Ghi chú nhanh</p>
@@ -261,9 +208,9 @@ export default function CheckIn() {
       <button
         onClick={handleSave}
         disabled={!mood || saving}
-        className="w-full bg-primary text-oncolor rounded-lg py-3.5 font-medium disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+        className="w-full bg-primary text-oncolor rounded-lg py-3.5 font-medium disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
       >
-        <Check size={18} strokeWidth={2.2} />
+        {saving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} strokeWidth={2.2} />}
         {saving ? 'Đang lưu…' : existing ? 'Cập nhật' : 'Lưu check-in'}
       </button>
 

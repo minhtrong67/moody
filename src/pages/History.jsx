@@ -288,11 +288,11 @@ function ListView({ entries, deleteEntry, activityById, moodByKey, moods }) {
         </p>
       ) : (
         <ul className="space-y-2.5 pb-4">
-          {filtered.map((e) => {
+          {filtered.map((e, idx) => {
             const m = moodByKey(e.mood);
             const time = e.time ? new Date(e.time) : null;
             return (
-              <li key={e.id} className="pop-in">
+              <li key={e.id} className="pop-in" style={{ animationDelay: `${Math.min(idx, 8) * 35}ms` }}>
                 <SwipeableRow
                   onEdit={() => navigate(`/checkin/${e.id}`)}
                   onDelete={() => setPendingDelete(e)}

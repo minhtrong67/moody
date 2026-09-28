@@ -1,7 +1,43 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, ListChecks, BarChart3, Settings as SettingsIcon, Plus, ArrowUp, Menu } from 'lucide-react'
+import { Home, ListChecks, BarChart3, Settings as SettingsIcon, Plus, ArrowUp, Menu, Sun, Moon, Monitor } from 'lucide-react'
 import Sidebar from './Sidebar'
+import { getStoredTheme, setTheme } from '../lib/theme'
+
+const THEME_CYCLE = ['light', 'dark', 'system']
+const THEME_META = {
+  light: { icon: Sun, label: 'Giao diện sáng' },
+  dark: { icon: Moon, label: 'Giao diện tối' },
+  system: { icon: Monitor, label: 'Theo hệ thống' }
+}
+
+function ThemeToggle() {
+  const [theme, setThemeState] = useState(getStoredTheme())
+
+  useEffect(() => {
+    const sync = () => setThemeState(getStoredTheme())
+    window.addEventListener('themechange', sync)
+    return () => window.removeEventListener('themechange', sync)
+  }, [])
+
+  function cycle() {
+    const next = THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length]
+    setThemeState(next)
+    setTheme(next)
+  }
+
+  const { icon: Icon, label } = THEME_META[theme]
+  return (
+    <button
+      onClick={cycle}
+      aria-label={label}
+      title={label}
+      className="w-9 h-9 rounded-full bg-line/25 text-ink flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+    >
+      <Icon key={theme} size={17} strokeWidth={2} className="pop-in" />
+    </button>
+  )
+}
 
 const LEFT_TABS = [
   { to: '/', label: 'Hôm nay', icon: Home, end: true },
@@ -40,11 +76,13 @@ export default function AppShell() {
         <button
           onClick={() => setSidebarOpen(true)}
           aria-label="Mở menu"
-          className="w-9 h-9 rounded-full bg-line/25 text-ink flex items-center justify-center shrink-0"
+          className="w-9 h-9 rounded-full bg-line/25 text-ink flex items-center justify-center shrink-0 active:scale-90 transition-transform"
         >
           <Menu size={18} strokeWidth={2} />
         </button>
-        <span className="font-display text-base">Moody</span>
+        <img src="/icons/icon-192.png" alt="" className="w-7 h-7 rounded-lg" />
+        <span className="font-display text-base flex-1">Moody</span>
+        <ThemeToggle />
       </header>
 
       <main ref={mainRef} className="flex-1 overflow-y-auto pb-28 relative">

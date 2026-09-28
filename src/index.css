@@ -102,3 +102,14 @@ select option {
     transition-duration: 0.001ms !important;
   }
 }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgb(var(--c-line) / 0.4) 25%, rgb(var(--c-line) / 0.7) 37%, rgb(var(--c-line) / 0.4) 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}

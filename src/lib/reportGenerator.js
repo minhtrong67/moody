@@ -1,10 +1,13 @@
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
 import { moodByKey } from './moodConfig'
 
 // Dựng một node HTML ẩn chứa nội dung báo cáo, chụp lại bằng html2canvas (giữ nguyên
 // font chữ tiếng Việt vì được render dưới dạng ảnh) rồi nhúng vào PDF qua jsPDF.
 export async function exportStatsPdf({ periodLabel, stats, distribution, timeSeries }) {
+  // Nạp thư viện nặng khi thật sự cần (bấm xuất) để trang Thống kê mở nhanh hơn.
+  const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+    import('jspdf'),
+    import('html2canvas')
+  ])
   const node = document.createElement('div')
   node.style.position = 'fixed'
   node.style.left = '-9999px'
