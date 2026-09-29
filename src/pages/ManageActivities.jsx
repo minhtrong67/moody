@@ -5,9 +5,10 @@ import { useToast } from '../context/ToastContext'
 import SwipeableRow from '../components/SwipeableRow'
 import Dialog from '../components/Dialog'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { ManageListSkeleton } from '../components/PageSkeleton'
 
 export default function ManageActivities() {
-  const { activities, addActivity, updateActivity, removeActivity, reorderActivities } = useActivities()
+  const { activities, loading, addActivity, updateActivity, removeActivity, reorderActivities } = useActivities()
   const { showToast } = useToast()
   const [editingId, setEditingId] = useState(null)
   const [formOpen, setFormOpen] = useState(false)
@@ -209,6 +210,9 @@ export default function ManageActivities() {
         </div>
       </Dialog>
 
+      {loading ? (
+        <ManageListSkeleton />
+      ) : (
       <ul className="space-y-2.5">
         {order.map((a, i) => (
           <li
@@ -254,6 +258,7 @@ export default function ManageActivities() {
           </li>
         ))}
       </ul>
+      )}
     </div>
   )
 }

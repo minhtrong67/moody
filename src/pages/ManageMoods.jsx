@@ -3,9 +3,10 @@ import { Pencil, Check, X, RotateCcw, Loader2 } from 'lucide-react'
 import { useMoods } from '../hooks/useMoods'
 import Dialog from '../components/Dialog'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { ManageListSkeleton } from '../components/PageSkeleton'
 
 export default function ManageMoods() {
-  const { moods, updateMood, resetMood, hasOverride } = useMoods()
+  const { moods, loading, updateMood, resetMood, hasOverride } = useMoods()
   const [editingKey, setEditingKey] = useState(null)
   const [emoji, setEmoji] = useState('')
   const [label, setLabel] = useState('')
@@ -101,6 +102,9 @@ export default function ManageMoods() {
         </div>
       </Dialog>
 
+      {loading ? (
+        <ManageListSkeleton count={5} />
+      ) : (
       <div className="space-y-2">
         {moods.map((m) => (
           <div
@@ -137,6 +141,7 @@ export default function ManageMoods() {
           </div>
         ))}
       </div>
+      )}
     </div>
   )
 }

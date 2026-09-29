@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
   addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc
 } from 'firebase/firestore'
@@ -34,6 +34,7 @@ export function MoodEntriesProvider({ children }) {
       setLoading(false)
       return
     }
+    setLoading(true)
     const q = query(collection(db, 'users', user.uid, 'entries'), orderBy('date', 'desc'))
     const unsub = onSnapshot(
       q,
@@ -88,11 +89,12 @@ export function MoodEntriesProvider({ children }) {
     [user]
   )
 
-  return (
-    <MoodEntriesContext.Provider value={{ entries, loading, addEntry, updateEntry, deleteEntry }}>
-      {children}
-    </MoodEntriesContext.Provider>
+  const value = useMemo(
+    () => ({ entries, loading, addEntry, updateEntry, deleteEntry }),
+    [entries, loading, addEntry, updateEntry, deleteEntry]
   )
+
+  return <MoodEntriesContext.Provider value={value}>{children}</MoodEntriesContext.Provider>
 }
 
 export function useMoodEntries() {

@@ -255,3 +255,11 @@ Deploy thư mục `dist/` lên bất kỳ static host nào (Firebase Hosting, Ve
 - Dữ liệu (check-in, hoạt động, tâm trạng) được nạp **một lần** ở gốc app qua Context nên chuyển trang không bị tải lại.
 - Các trang được **lazy-load** (code splitting) và **preload khi trình duyệt rảnh**; thư viện PDF (`jspdf`, `html2canvas`) chỉ được nạp khi bấm xuất báo cáo.
 - Hộp thoại xác nhận (`ConfirmDialog`, `z-[80]`) luôn nằm trên mọi dialog/form khác.
+
+## Splash / theme khi mở app (PWA)
+
+Màn hình khởi động (trước khi React mount) được vẽ tĩnh ngay trong `index.html` bằng một đoạn script nhỏ đọc `localStorage.theme` và gắn class `.dark` **trước khi có bất kỳ khung hình nào được vẽ** — nên không còn hiện tượng nháy nền trắng khi mở app ở giao diện tối. `theme-color` (thanh trạng thái/thanh địa chỉ) cũng được đồng bộ mỗi khi đổi theme trong `lib/theme.js`. Màu nền splash do hệ điều hành vẽ khi mở app từ icon (`manifest.background_color`) dùng màu thương hiệu trung tính vì trình duyệt/manifest hiện chưa hỗ trợ khai báo theo theme sáng/tối.
+
+## Skeleton loading
+
+Dữ liệu (check-in, hoạt động, tâm trạng) expose thêm cờ `loading` từ Context. Mỗi trang tự hiển thị skeleton đúng hình dạng nội dung thật (`components/PageSkeleton.jsx`) trong lúc chờ — áp dụng cho Hôm nay, Lịch sử (danh sách & lịch), Thống kê, Check-in, Quản lý hoạt động/tâm trạng — tránh "nhảy layout" khi dữ liệu về.

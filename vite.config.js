@@ -12,8 +12,10 @@ export default defineConfig({
         name: 'Moody — Nhật ký tâm trạng',
         short_name: 'Moody',
         description: 'Theo dõi tâm trạng mỗi ngày, xem xu hướng và xuất báo cáo',
+        // Splash do hệ điều hành vẽ chỉ nhận MỘT màu nền cố định (manifest chưa hỗ trợ theo theme sáng/tối),
+        // nên dùng màu thương hiệu trung tính thay vì màu nền sáng gây chói khi đang dùng giao diện tối.
         theme_color: '#0D9488',
-        background_color: '#F2F1EA',
+        background_color: '#0D9488',
         display: 'standalone',
         start_url: '/',
         icons: [

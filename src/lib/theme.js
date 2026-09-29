@@ -13,6 +13,9 @@ export function applyTheme(theme) {
   const isDark =
     theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   document.documentElement.classList.toggle('dark', isDark)
+  // Đồng bộ màu thanh trạng thái / thanh tiêu đề của app PWA với theme đang dùng.
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute('content', isDark ? '#202024' : '#F2F1EA')
 }
 
 export function setTheme(theme) {

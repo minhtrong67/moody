@@ -11,6 +11,7 @@ import { useMoods } from '../hooks/useMoods'
 import { calcStreak } from '../lib/dateUtils'
 import { latestByDate, periodLabel, buildTimeSeries, moodDistribution, getBuckets } from '../lib/statsUtils'
 import { exportStatsPdf } from '../lib/reportGenerator'
+import { StatsBodySkeleton } from '../components/PageSkeleton'
 
 const PERIODS = [
   { key: 'day', label: 'Ngày', word: 'ngày' },
@@ -26,9 +27,10 @@ const THEME = {
 }
 
 export default function Statistics() {
-  const { entries } = useMoodEntries()
-  const { activities } = useActivities()
-  const { moods, moodByKey } = useMoods()
+  const { entries, loading: entriesLoading } = useMoodEntries()
+  const { activities, loading: activitiesLoading } = useActivities()
+  const { moods, moodByKey, loading: moodsLoading } = useMoods()
+  const loading = entriesLoading || activitiesLoading || moodsLoading
   const [period, setPeriod] = useState('month')
   const [cursor, setCursor] = useState(new Date())
   const [exporting, setExporting] = useState(false)
@@ -159,6 +161,10 @@ export default function Statistics() {
         {exporting ? 'Đang tạo PDF…' : `Xuất báo cáo theo ${periodMeta.word}`}
       </button>
 
+      {loading ? (
+        <StatsBodySkeleton />
+      ) : (
+      <>
       <div className="space-y-3 mb-8">
         <StatRow icon={Smile} label="Mood trung bình" value={stats.avg != null ? `${stats.avg.toFixed(1)}/5` : '—'} color="#8FBF7F" />
         <StatRow icon={CalendarCheck2} label="Ngày đã check-in" value={stats.checkinDays} color="#9FB8C8" />
@@ -260,6 +266,8 @@ export default function Statistics() {
             </>
           )}
         </>
+      )}
+      </>
       )}
     </div>
   )

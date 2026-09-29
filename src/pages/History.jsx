@@ -17,6 +17,10 @@ import { useToast } from "../context/ToastContext";
 import { daysInMonth, relativeDateLabel } from "../lib/dateUtils";
 import SwipeableRow from "../components/SwipeableRow";
 import ConfirmDialog from "../components/ConfirmDialog";
+import {
+  EntryListSkeleton,
+  CalendarSkeleton,
+} from "../components/PageSkeleton";
 
 const PERIOD_FILTERS = [
   { key: "all", label: "Tất cả" },
@@ -48,9 +52,10 @@ const MONTHS_VI = [
 ];
 
 export default function History() {
-  const { entries, deleteEntry } = useMoodEntries();
-  const { activities } = useActivities();
-  const { moodByKey, moods } = useMoods();
+  const { entries, loading: entriesLoading, deleteEntry } = useMoodEntries();
+  const { activities, loading: activitiesLoading } = useActivities();
+  const { moodByKey, moods, loading: moodsLoading } = useMoods();
+  const loading = entriesLoading || activitiesLoading || moodsLoading;
   const [view, setView] = useState("list");
 
   const activityById = useMemo(
@@ -79,6 +84,7 @@ export default function History() {
 
       {view === "list" ? (
         <ListView
+          loading={loading}
           entries={entries}
           deleteEntry={deleteEntry}
           activityById={activityById}
@@ -87,6 +93,7 @@ export default function History() {
         />
       ) : (
         <CalendarView
+          loading={loading}
           entries={entries}
           activityById={activityById}
           moodByKey={moodByKey}
@@ -96,7 +103,14 @@ export default function History() {
   );
 }
 
-function ListView({ entries, deleteEntry, activityById, moodByKey, moods }) {
+function ListView({
+  loading,
+  entries,
+  deleteEntry,
+  activityById,
+  moodByKey,
+  moods,
+}) {
   const navigate = useNavigate();
   const [period, setPeriod] = useState("all");
   const [moodFilter, setMoodFilter] = useState("all");
@@ -279,10 +293,14 @@ function ListView({ entries, deleteEntry, activityById, moodByKey, moods }) {
       </div>
 
       <p className="text-xs text-inkmuted mb-3">
-        {filtered.length} bản ghi · vuốt để sửa hoặc xóa
+        {loading
+          ? "Đang tải…"
+          : `${filtered.length} bản ghi · vuốt để sửa hoặc xóa`}
       </p>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <EntryListSkeleton />
+      ) : filtered.length === 0 ? (
         <p className="text-inkmuted text-sm text-center py-16">
           Không tìm thấy bản ghi phù hợp.
         </p>
@@ -333,7 +351,7 @@ function ListView({ entries, deleteEntry, activityById, moodByKey, moods }) {
                             return (
                               <span
                                 key={id}
-                                className="text-xs p-2 rounded-full bg-line/40 text-inkmuted flex items-center justify-center gap-2"
+                                className="text-xs p-2 rounded-full bg-line/40 text-inkmuted flex items-center justify-center text-center gap-2"
                               >
                                 <span className="flex-shrink-0">{a.emoji}</span>
                                 {a.label}
@@ -354,7 +372,7 @@ function ListView({ entries, deleteEntry, activityById, moodByKey, moods }) {
   );
 }
 
-function CalendarView({ entries, activityById, moodByKey }) {
+function CalendarView({ loading, entries, activityById, moodByKey }) {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [cursor, setCursor] = useState(new Date());
@@ -388,6 +406,8 @@ function CalendarView({ entries, activityById, moodByKey }) {
   }
 
   const selectedEntry = selected ? byDate[selected] : null;
+
+  if (loading) return <CalendarSkeleton />;
 
   return (
     <div className="pb-4 pop-in">

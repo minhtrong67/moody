@@ -37,7 +37,7 @@ export function ToastProvider({ children }) {
         style={{ bottom: "calc(var(--safe-bottom) + 6.75rem)" }}
       >
         {toast && (
-          <div className="flex items-center gap-2 bg-ink dark:bg-line dark:text-white text-paper text-sm px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap">
+          <div className="flex items-center gap-2 bg-surface text-white text-sm px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap">
             <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
               <Check size={12} strokeWidth={2.6} className="text-oncolor" />
             </span>

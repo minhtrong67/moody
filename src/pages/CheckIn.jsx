@@ -7,6 +7,7 @@ import { useMoods } from '../hooks/useMoods'
 import { useToast } from '../context/ToastContext'
 import { todayISO } from '../lib/dateUtils'
 import ConfirmDialog from '../components/ConfirmDialog'
+import PageSkeleton from '../components/PageSkeleton'
 
 function toDatetimeLocalValue(date) {
   const pad = (n) => String(n).padStart(2, '0')
@@ -17,9 +18,10 @@ export default function CheckIn() {
   const navigate = useNavigate()
   const { id } = useParams()
   const [searchParams] = useSearchParams()
-  const { entries, addEntry, updateEntry } = useMoodEntries()
-  const { activities } = useActivities()
-  const { moods, moodByKey } = useMoods()
+  const { entries, loading: entriesLoading, addEntry, updateEntry } = useMoodEntries()
+  const { activities, loading: activitiesLoading } = useActivities()
+  const { moods, moodByKey, loading: moodsLoading } = useMoods()
+  const dataLoading = entriesLoading || activitiesLoading || moodsLoading
   const { showToast } = useToast()
   const noteRef = useRef(null)
 
@@ -40,6 +42,18 @@ export default function CheckIn() {
   const [saving, setSaving] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false)
+
+  // Nếu vào thẳng link sửa (/checkin/:id) khi dữ liệu vẫn đang tải lần đầu,
+  // đồng bộ lại form ngay khi bản ghi tương ứng xuất hiện.
+  useEffect(() => {
+    if (existing) {
+      setMood(existing.mood)
+      setSelectedActivities(existing.activities || [])
+      setNote(existing.note || '')
+      setDatetime(toDatetimeLocalValue(new Date(existing.time)))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existing?.id])
 
   useEffect(() => {
     function onScroll() {
@@ -92,6 +106,8 @@ export default function CheckIn() {
     if (existing) setConfirmSaveOpen(true)
     else performSave()
   }
+
+  if (dataLoading) return <PageSkeleton variant="form" />
 
   return (
     <div className="px-4 pt-6 pb-28 max-w-lg mx-auto page-enter">

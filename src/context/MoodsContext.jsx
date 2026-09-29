@@ -25,17 +25,26 @@ const MoodsContext = createContext(null)
 export function MoodsProvider({ children }) {
   const { user } = useAuth()
   const [overrides, setOverrides] = useState(() => (user ? {} : loadLocalOverrides()))
+  const [loading, setLoading] = useState(!!user)
 
   useEffect(() => {
     if (!user) {
       setOverrides(loadLocalOverrides())
+      setLoading(false)
       return
     }
+    setLoading(true)
     const ref = doc(db, 'users', user.uid, 'meta', 'moods')
     const unsub = onSnapshot(
       ref,
-      (snap) => setOverrides(snap.exists() ? snap.data().overrides || {} : {}),
-      () => setOverrides(loadLocalOverrides())
+      (snap) => {
+        setOverrides(snap.exists() ? snap.data().overrides || {} : {})
+        setLoading(false)
+      },
+      () => {
+        setOverrides(loadLocalOverrides())
+        setLoading(false)
+      }
     )
     return unsub
   }, [user])
@@ -76,8 +85,8 @@ export function MoodsProvider({ children }) {
   const hasOverride = useCallback((key) => !!overrides[key], [overrides])
 
   const value = useMemo(
-    () => ({ moods, moodByKey, updateMood, resetMood, hasOverride }),
-    [moods, moodByKey, updateMood, resetMood, hasOverride]
+    () => ({ moods, loading, moodByKey, updateMood, resetMood, hasOverride }),
+    [moods, loading, moodByKey, updateMood, resetMood, hasOverride]
   )
 
   return <MoodsContext.Provider value={value}>{children}</MoodsContext.Provider>

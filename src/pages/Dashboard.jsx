@@ -13,6 +13,7 @@ import { useAuth } from "../context/AuthContext";
 import { useMoodEntries } from "../hooks/useMoodEntries";
 import { useActivities } from "../hooks/useActivities";
 import { useMoods } from "../hooks/useMoods";
+import { TodayCardSkeleton, DashboardBodySkeleton } from "../components/PageSkeleton";
 import {
   calcStreak,
   daysOfWeek,
@@ -24,7 +25,7 @@ const WEEKDAY_LABELS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  const { entries } = useMoodEntries();
+  const { entries, loading } = useMoodEntries();
   const { activities } = useActivities();
   const { moodByKey } = useMoods();
 
@@ -108,7 +109,9 @@ export default function Dashboard() {
           )}
         </div>
 
-        {todayEntry ? (
+        {loading ? (
+          <TodayCardSkeleton />
+        ) : todayEntry ? (
           <div className="relative border border-line rounded-card p-4 flex items-center gap-4 bg-surface">
             <span
               className="w-14 h-14 rounded-full flex items-center justify-center text-3xl shrink-0"
@@ -154,6 +157,10 @@ export default function Dashboard() {
       </div>
 
       <div className="px-4">
+        {loading ? (
+          <DashboardBodySkeleton />
+        ) : (
+          <>
         <div className="grid grid-cols-3 gap-3 mb-9">
           <Stat
             icon={Flame}
@@ -257,6 +264,8 @@ export default function Dashboard() {
               })}
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

@@ -34,17 +34,26 @@ const ActivitiesContext = createContext(null)
 export function ActivitiesProvider({ children }) {
   const { user } = useAuth()
   const [state, setState] = useState(() => (user ? EMPTY_STATE : loadLocalState()))
+  const [loading, setLoading] = useState(!!user)
 
   useEffect(() => {
     if (!user) {
       setState(loadLocalState())
+      setLoading(false)
       return
     }
+    setLoading(true)
     const ref = doc(db, 'users', user.uid, 'meta', 'activities')
     const unsub = onSnapshot(
       ref,
-      (snap) => setState(snap.exists() ? { ...EMPTY_STATE, ...snap.data() } : EMPTY_STATE),
-      () => setState(loadLocalState())
+      (snap) => {
+        setState(snap.exists() ? { ...EMPTY_STATE, ...snap.data() } : EMPTY_STATE)
+        setLoading(false)
+      },
+      () => {
+        setState(loadLocalState())
+        setLoading(false)
+      }
     )
     return unsub
   }, [user])
@@ -112,8 +121,8 @@ export function ActivitiesProvider({ children }) {
   )
 
   const value = useMemo(
-    () => ({ activities, addActivity, removeActivity, updateActivity, reorderActivities }),
-    [activities, addActivity, removeActivity, updateActivity, reorderActivities]
+    () => ({ activities, loading, addActivity, removeActivity, updateActivity, reorderActivities }),
+    [activities, loading, addActivity, removeActivity, updateActivity, reorderActivities]
   )
 
   return <ActivitiesContext.Provider value={value}>{children}</ActivitiesContext.Provider>

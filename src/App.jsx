@@ -35,18 +35,27 @@ function prefetchPages() {
   else setTimeout(run, 1500)
 }
 
+// Giữ giống hệt màn hình khởi động tĩnh trong index.html để chuyển tiếp liền mạch (không nháy).
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-paper">
-      <span className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center animate-pulse">
-        <img src="/icons/icon-192.png" alt="" className="w-10 h-10 rounded-xl" />
-      </span>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-[18px] bg-paper">
+      <img src="/icons/icon-192.png" alt="" className="w-16 h-16 rounded-2xl animate-pulse" />
       <div className="flex gap-1.5">
         <span className="w-2 h-2 rounded-full bg-accent animate-bounce [animation-delay:-0.3s]" />
         <span className="w-2 h-2 rounded-full bg-accent animate-bounce [animation-delay:-0.15s]" />
         <span className="w-2 h-2 rounded-full bg-accent animate-bounce" />
       </div>
     </div>
+  )
+}
+
+// Mỗi route có Suspense riêng: khi trang đang tải chỉ vùng nội dung hiện skeleton,
+// header + bottom bar (AppShell) vẫn giữ nguyên.
+function page(Component, variant) {
+  return (
+    <Suspense fallback={<PageSkeleton variant={variant} />}>
+      <Component />
+    </Suspense>
   )
 }
 
@@ -72,20 +81,18 @@ function Gate() {
   if (!user && !guest) return <Login />
 
   return (
-    <Suspense fallback={<PageSkeleton />}>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/stats" element={<Statistics />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/manage/activities" element={<ManageActivities />} />
-          <Route path="/manage/moods" element={<ManageMoods />} />
-        </Route>
-        <Route path="/checkin" element={<CheckIn />} />
-        <Route path="/checkin/:id" element={<CheckIn />} />
-      </Routes>
-    </Suspense>
+    <Routes>
+      <Route element={<AppShell />}>
+        <Route path="/" element={page(Dashboard, 'dashboard')} />
+        <Route path="/history" element={page(History, 'history')} />
+        <Route path="/stats" element={page(Statistics, 'stats')} />
+        <Route path="/settings" element={page(Settings, 'settings')} />
+        <Route path="/manage/activities" element={page(ManageActivities, 'manage')} />
+        <Route path="/manage/moods" element={page(ManageMoods, 'manage')} />
+      </Route>
+      <Route path="/checkin" element={page(CheckIn, 'form')} />
+      <Route path="/checkin/:id" element={page(CheckIn, 'form')} />
+    </Routes>
   )
 }
 
