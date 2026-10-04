@@ -1,5 +1,5 @@
 import { MOODS } from './moodConfig'
-import { daysInMonth, daysOfWeek } from './dateUtils'
+import { daysInMonth, daysOfWeek, toLocalISODate } from './dateUtils'
 
 const WEEKDAY_LABELS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 const MONTH_LABELS = ['Th1','Th2','Th3','Th4','Th5','Th6','Th7','Th8','Th9','Th10','Th11','Th12']
@@ -30,7 +30,7 @@ export function getBuckets(period, cursor, byDate) {
   const m = cursor.getMonth()
 
   if (period === 'day') {
-    const iso = cursor.toISOString().slice(0, 10)
+    const iso = toLocalISODate(cursor)
     return { buckets: [{ key: iso, label: 'Hôm nay' }], entries: byDate[iso] ? [byDate[iso]] : [] }
   }
 

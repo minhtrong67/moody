@@ -3,14 +3,14 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell
 } from 'recharts'
-import { ChevronLeft, ChevronRight, FileDown, Smile, CalendarCheck2, Flame, Heart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileDown, Image as ImageIcon, Loader2, Smile, CalendarCheck2, Flame, Heart } from 'lucide-react'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useActivities } from '../hooks/useActivities'
 import { useIsDark } from '../hooks/useIsDark'
 import { useMoods } from '../hooks/useMoods'
 import { calcStreak } from '../lib/dateUtils'
 import { latestByDate, periodLabel, buildTimeSeries, moodDistribution, getBuckets } from '../lib/statsUtils'
-import { exportStatsPdf } from '../lib/reportGenerator'
+import { exportStatsPdf, exportStatsImage } from '../lib/reportGenerator'
 import { StatsBodySkeleton } from '../components/PageSkeleton'
 
 const PERIODS = [
@@ -33,7 +33,7 @@ export default function Statistics() {
   const loading = entriesLoading || activitiesLoading || moodsLoading
   const [period, setPeriod] = useState('month')
   const [cursor, setCursor] = useState(new Date())
-  const [exporting, setExporting] = useState(false)
+  const [exporting, setExporting] = useState(null)
   const isDark = useIsDark()
   const c = isDark ? THEME.dark : THEME.light
 
@@ -81,12 +81,21 @@ export default function Statistics() {
     setCursor(d)
   }
 
-  async function handleExport() {
-    setExporting(true)
+  async function handleExportPdf() {
+    setExporting('pdf')
     try {
       await exportStatsPdf({ periodLabel: label, stats, distribution, timeSeries })
     } finally {
-      setExporting(false)
+      setExporting(null)
+    }
+  }
+
+  async function handleExportImage() {
+    setExporting('image')
+    try {
+      await exportStatsImage({ periodLabel: label, stats, distribution, timeSeries })
+    } finally {
+      setExporting(null)
     }
   }
 
@@ -152,14 +161,25 @@ export default function Statistics() {
         </button>
       </div>
 
-      <button
-        onClick={handleExport}
-        disabled={exporting || !hasData}
-        className="w-full bg-primary text-oncolor rounded-card py-3.5 font-medium disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm mb-8"
-      >
-        <FileDown size={18} strokeWidth={2} />
-        {exporting ? 'Đang tạo PDF…' : `Xuất báo cáo theo ${periodMeta.word}`}
-      </button>
+      <p className="text-xs text-inkmuted mb-2">Xuất báo cáo theo {periodMeta.word}</p>
+      <div className="grid grid-cols-2 gap-2.5 mb-8">
+        <button
+          onClick={handleExportPdf}
+          disabled={!!exporting || !hasData}
+          className="bg-primary text-oncolor rounded-card py-3.5 font-medium disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm"
+        >
+          {exporting === 'pdf' ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} strokeWidth={2} />}
+          {exporting === 'pdf' ? 'Đang tạo…' : 'PDF'}
+        </button>
+        <button
+          onClick={handleExportImage}
+          disabled={!!exporting || !hasData}
+          className="bg-accent/10 text-accent rounded-card py-3.5 font-medium disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm"
+        >
+          {exporting === 'image' ? <Loader2 size={18} className="animate-spin" /> : <ImageIcon size={18} strokeWidth={2} />}
+          {exporting === 'image' ? 'Đang tạo…' : 'Ảnh (PNG)'}
+        </button>
+      </div>
 
       {loading ? (
         <StatsBodySkeleton />

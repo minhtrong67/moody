@@ -1,7 +1,8 @@
-// Nhắc nhở check-in / báo cáo — hoạt động khi app đang mở trong trình duyệt
-// (Web Notification API không hỗ trợ hẹn giờ chạy nền thật sự nếu không có
-// service worker + push server riêng). Hook useNotificationScheduler sẽ kiểm
-// tra định kỳ mỗi phút khi app đang chạy và bắn thông báo đúng thời điểm.
+// Nhắc nhở check-in / báo cáo — chỉ hoạt động khi app đang mở (tab hoặc PWA).
+// Không có service worker đẩy nền (push server) nên không thể bắn thông báo
+// khi app đã bị đóng hẳn — xem ghi chú ở cuối file.
+
+import { toLocalISODate } from './dateUtils'
 
 const KEYS = {
   dailyEnabled: 'notif-daily-enabled',
@@ -33,12 +34,34 @@ export async function requestNotificationPermission() {
   return Notification.requestPermission()
 }
 
-function notify(title, body) {
+// Nhiều trình duyệt di động (Android Chrome ở chế độ PWA, iOS Safari...) không hỗ trợ
+// `new Notification()` gọi trực tiếp từ trang — chỉ nhận thông báo bắn qua Service Worker
+// (registration.showNotification). Ưu tiên đường này, chỉ dùng `new Notification()` làm
+// phương án dự phòng cho trình duyệt desktop không có service worker.
+async function notify(title, body) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return
+
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      if (registration && registration.showNotification) {
+        await registration.showNotification(title, {
+          body,
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-192.png',
+          tag: title
+        })
+        return
+      }
+    } catch {
+      // rơi xuống phương án dự phòng bên dưới
+    }
+  }
+
   try {
     new Notification(title, { body, icon: '/icons/icon-192.png' })
   } catch {
-    // một số trình duyệt mobile yêu cầu dùng ServiceWorkerRegistration.showNotification thay vì `new Notification`
+    // trình duyệt này chỉ hỗ trợ thông báo qua service worker — không còn cách nào khác
   }
 }
 
@@ -51,15 +74,18 @@ function isoWeek(d) {
   return `${date.getFullYear()}-W${weekNo}`
 }
 
-// Gọi định kỳ (mỗi phút) từ useNotificationScheduler.
+// Gọi định kỳ (mỗi phút, và mỗi khi app được mở lại) từ useNotificationScheduler.
+// Dùng điều kiện "đã TỚI HOẶC QUA giờ hẹn, và chưa bắn trong ngày/tuần/tháng này" thay vì
+// khớp đúng từng phút — vì trình duyệt di động thường tạm dừng bộ đếm giờ khi app chạy nền
+// hoặc màn hình khoá, nên không thể đảm bảo code chạy đúng vào phút cần bắn thông báo.
 export function checkAndFireNotifications() {
   if (!('Notification' in window) || Notification.permission !== 'granted') return
   const settings = getNotificationSettings()
   const now = new Date()
-  const todayIso = now.toISOString().slice(0, 10)
+  const todayIso = toLocalISODate(now)
   const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 
-  if (settings.dailyEnabled && hhmm === settings.dailyTime && localStorage.getItem(KEYS.lastDaily) !== todayIso) {
+  if (settings.dailyEnabled && hhmm >= settings.dailyTime && localStorage.getItem(KEYS.lastDaily) !== todayIso) {
     notify('Đến giờ check-in rồi! 🌤️', 'Dành 10 giây ghi lại tâm trạng hôm nay của bạn trên Moody.')
     localStorage.setItem(KEYS.lastDaily, todayIso)
   }
@@ -76,4 +102,10 @@ export function checkAndFireNotifications() {
     notify('Báo cáo tháng trước đã sẵn sàng 🗓️', 'Xem thống kê mood cả tháng vừa qua và xuất báo cáo PDF nếu cần.')
     localStorage.setItem(KEYS.lastMonthly, monthKey)
   }
+}
+
+// Gửi thử một thông báo ngay lập tức — dùng để người dùng tự kiểm tra quyền/thiết bị
+// có nhận được thông báo thật sự hay không, thay vì phải chờ đến đúng giờ hẹn.
+export async function sendTestNotification() {
+  await notify('Thông báo thử từ Moody 👋', 'Nếu bạn thấy thông báo này, mọi thứ đang hoạt động tốt.')
 }

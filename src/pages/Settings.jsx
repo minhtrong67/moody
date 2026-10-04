@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import {
   Sun, Moon, Monitor, Smartphone, Bell, LineChart, CalendarRange,
-  Download, Trash2, LogOut, Heart
+  Download, Trash2, LogOut, Heart, Send, Loader2
 } from 'lucide-react'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { todayISO } from '../lib/dateUtils'
 import { useAuth } from '../context/AuthContext'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { getStoredTheme, getStoredFontScale, setTheme, setFontScale } from '../lib/theme'
-import { getNotificationSettings, setNotificationSetting, requestNotificationPermission } from '../lib/notifications'
+import { getNotificationSettings, setNotificationSetting, requestNotificationPermission, sendTestNotification } from '../lib/notifications'
 
 const THEMES = [
   { key: 'light', label: 'Sáng', icon: Sun },
@@ -31,6 +32,8 @@ export default function Settings() {
   const [notif, setNotif] = useState(getNotificationSettings())
   const [permission, setPermission] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
   const [confirmClear, setConfirmClear] = useState(false)
+  const [testSending, setTestSending] = useState(false)
+  const [testSent, setTestSent] = useState(false)
 
   function handleTheme(value) {
     setThemeState(value)
@@ -59,6 +62,18 @@ export default function Settings() {
     setNotif((s) => ({ ...s, [key]: next }))
   }
 
+  async function handleTestNotification() {
+    setTestSending(true)
+    setTestSent(false)
+    const granted = await ensurePermission()
+    if (granted) {
+      await sendTestNotification()
+      setTestSent(true)
+      setTimeout(() => setTestSent(false), 3000)
+    }
+    setTestSending(false)
+  }
+
   function handleDailyTime(value) {
     setNotificationSetting('dailyTime', value)
     setNotif((s) => ({ ...s, dailyTime: value }))
@@ -69,7 +84,7 @@ export default function Settings() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `moody-data-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `moody-data-${todayISO()}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -191,8 +206,18 @@ export default function Settings() {
             Thông báo đang bị chặn ở trình duyệt. Vào cài đặt trình duyệt để cho phép thông báo cho trang này.
           </p>
         )}
+
+        <button
+          onClick={handleTestNotification}
+          disabled={testSending}
+          className="w-full flex items-center justify-center gap-2 mt-3 bg-line/30 text-ink rounded-full py-2.5 text-sm font-medium disabled:opacity-60 active:scale-95 transition-transform"
+        >
+          {testSending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} strokeWidth={2} />}
+          {testSending ? 'Đang gửi…' : testSent ? 'Đã gửi — kiểm tra thông báo trên máy' : 'Gửi thử thông báo ngay'}
+        </button>
+
         <p className="text-xs text-inkmuted mt-3">
-          Thông báo hoạt động khi Moody đang mở trong trình duyệt/PWA. Để nhắc nhở kể cả khi tắt app cần thêm service worker + máy chủ đẩy thông báo (push server).
+          Thông báo hoạt động khi Moody đang mở trong trình duyệt/PWA (kể cả chạy nền một lúc). Để nhắc nhở kể cả khi đã tắt hẳn app cần thêm máy chủ đẩy thông báo (push server).
         </p>
       </SettingGroup>
 
