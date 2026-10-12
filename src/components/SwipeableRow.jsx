@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from './icons'
 
 const THRESHOLD = 76
 const MAX_DRAG = 128
@@ -43,21 +43,21 @@ export default function SwipeableRow({ onEdit, onDelete, children }) {
   const revealLeft = dragX > 0 ? Math.min(1, dragX / THRESHOLD) : 0
 
   return (
-    <div className="relative overflow-hidden rounded-lg">
+    <div className="relative overflow-hidden rounded-m3-md">
       <div className="absolute inset-0 flex">
         <div
-          className="h-full flex items-center pl-5 gap-2 text-oncolor bg-primary"
+          className="h-full flex items-center pl-5 gap-2 text-on-primary bg-primary"
           style={{ width: '50%', opacity: revealLeft, transform: `scale(${0.9 + revealLeft * 0.1})`, transformOrigin: 'left center' }}
         >
-          <Pencil size={18} strokeWidth={2.2} />
-          <span className="text-xs font-medium">Sửa</span>
+          <Pencil size={24} />
+          <span className="t-label-large">Sửa</span>
         </div>
         <div
-          className="h-full flex items-center justify-end pr-5 gap-2 text-oncolor bg-mood-angry ml-auto"
+          className="h-full flex items-center justify-end pr-5 gap-2 text-on-error bg-error ml-auto"
           style={{ width: '50%', opacity: revealRight, transform: `scale(${0.9 + revealRight * 0.1})`, transformOrigin: 'right center' }}
         >
-          <span className="text-xs font-medium">Xóa</span>
-          <Trash2 size={18} strokeWidth={2.2} />
+          <span className="t-label-large">Xóa</span>
+          <Trash2 size={24} />
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export default function SwipeableRow({ onEdit, onDelete, children }) {
           transition: dragging ? 'none' : 'transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
           touchAction: 'pan-y'
         }}
-        className="relative bg-surface"
+        className="relative"
       >
         {children}
       </div>

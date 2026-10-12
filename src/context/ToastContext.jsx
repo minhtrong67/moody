@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { Check } from "lucide-react";
 
 const ToastContext = createContext(null);
 
@@ -28,19 +27,17 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
+      {/* Snackbar của Material Design 3: nền inverse-surface, bo 4dp, nằm phía trên navigation bar */}
       <div
-        className={`fixed left-1/2 -translate-x-1/2 z-[60] transition-all duration-300 ${
-          toast
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-3 pointer-events-none"
+        className={`fixed left-4 right-4 z-[60] flex justify-center transition-all duration-300 ease-emphasized ${
+          toast ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
         }`}
-        style={{ bottom: "calc(var(--safe-bottom) + 6.75rem)" }}
+        style={{ bottom: "calc(var(--safe-bottom) + 6rem)" }}
+        role="status"
+        aria-live="polite"
       >
         {toast && (
-          <div className="flex items-center gap-2 bg-ink text-paper text-sm px-4 py-2.5 rounded-full shadow-lg whitespace-nowrap">
-            <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
-              <Check size={12} strokeWidth={2.6} className="text-oncolor" />
-            </span>
+          <div className="flex items-center min-h-12 w-full max-w-md bg-inverse-surface text-inverse-on-surface t-body-medium px-4 py-3 rounded-m3-xs shadow-elev-3">
             {toast.message}
           </div>
         )}

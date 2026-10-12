@@ -45,12 +45,12 @@
 ## Công nghệ
 
 - **React 18** + **Vite 5** — SPA, dev server nhanh, HMR
-- **Tailwind CSS 3** — toàn bộ theme (màu, khoảng cách, bo góc) khai báo tại [`tailwind.config.js`](./tailwind.config.js)
+- **Tailwind CSS 3** — theme **Material Design 3** (vai trò màu, shape, elevation) khai báo tại [`tailwind.config.js`](./tailwind.config.js) và [`src/index.css`](./src/index.css)
 - **Firebase** — Authentication (Google Sign-In) + Cloud Firestore
 - **React Router 6** (`HashRouter`) — điều hướng phía client, tương thích tốt khi host tĩnh
 - **Recharts** — biểu đồ cột & tròn trong trang Thống kê
 - **jsPDF + html2canvas** — xuất báo cáo PDF (render HTML → ảnh → PDF, tránh lỗi font tiếng Việt)
-- **lucide-react** — bộ icon dùng trong toàn app
+- **react-icons (Material Design icons)** + **Roboto** (`@fontsource/roboto`, tự host, có subset tiếng Việt) — icon & font chuẩn Material; `components/icons.jsx` gom toàn bộ icon dùng trong app
 - **vite-plugin-pwa** — service worker, manifest, khả năng cài đặt như app
 - **Pointer Events API** (native, không thư viện ngoài) — cử chỉ vuốt trong `components/SwipeableRow.jsx`
 
@@ -152,9 +152,13 @@ src/
 │
 ├── components/
 │   ├── Login.jsx                   # Màn hình đăng nhập / chế độ khách
-│   ├── AppShell.jsx                # Header + bottom nav (4 tab) + FAB check-in + scroll-to-top
+│   ├── AppShell.jsx                # Top app bar + navigation bar (4 tab) + FAB check-in + scroll-to-top
 │   ├── Sidebar.jsx                 # Drawer menu đầy đủ (mở qua icon ☰ ở header)
-│   ├── Dialog.jsx                  # Dialog form (thêm/sửa) căn giữa
+│   ├── Dialog.jsx                  # Dialog form (thêm/sửa) căn giữa, render qua portal
+│   ├── icons.jsx                   # Icon Material (react-icons/md) + spinner
+│   ├── TextField.jsx               # Outlined text field M3 (input/textarea/select)
+│   ├── Switch.jsx                  # Switch M3
+│   ├── SegmentedButton.jsx         # Segmented button M3
 │   ├── PageSkeleton.jsx            # Skeleton hiển thị khi trang đang tải (lazy route)
 │   ├── SwipeableRow.jsx            # Cử tay vuốt trái/phải cho card trong Lịch sử
 │   └── ConfirmDialog.jsx           # Hộp thoại xác nhận dùng lại nhiều nơi
@@ -197,15 +201,20 @@ src/
 
 <br/>
 
-## Hệ thống màu & dark mode
+## Hệ thống màu & dark mode (Material Design 3)
 
-Toàn bộ màu nền/chữ dùng CSS custom properties (`--c-paper`, `--c-ink`, `--c-inkmuted`, `--c-line`, `--c-surface`, `--c-accent`), khai báo tại [`src/index.css`](./src/index.css) và đổi giá trị theo class `.dark` trên `<html>` — nên tự động đảo màu đúng ở mọi nơi trong app, kể cả input/select gốc của trình duyệt (`color-scheme`).
+Giao diện theo **Material Design 3** với bảng màu lấy từ file export của Material Theme Builder (seed `#769CDF`, primary `#415F91`). Toàn bộ *color role* của M3 (`primary`, `on-primary`, `primary-container`, `secondary-container`, `surface`, `surface-container-low…highest`, `on-surface`, `on-surface-variant`, `outline`, `outline-variant`, `error`, `inverse-surface`…) là CSS variable dạng `--md-*` trong [`src/index.css`](./src/index.css), đổi giá trị theo class `.dark` trên `<html>`, và được map thành class Tailwind cùng tên (`bg-primary-container`, `text-on-surface-variant`, `bg-surface-container-high`…).
 
-- **`primary`** — màu thương hiệu cố định (Tailwind `teal-600` / `#0D9488`), dùng làm nền các nút hành động chính (CTA), không đổi theo theme.
-- **`oncolor`** — màu chữ sáng cố định, luôn dùng cùng `primary` hoặc các màu mood đậm để đảm bảo tương phản ở cả 2 theme.
-- **`accent`** — màu nhấn *đổi theo theme* (xanh lục đậm `teal-700` ở giao diện sáng → xanh lục nhạt `teal-300` ở giao diện tối), dùng cho text/icon/viền cần nổi bật trên nền trang (tab đang chọn, nút sửa, viền focus…).
+- **Shape** — `rounded-m3-xs/sm/md/lg/xl` (4 / 8 / 12 / 16 / 28dp); nút, segmented, search bar dạng viên thuốc (`rounded-full`).
+- **Elevation** — `shadow-elev-1…4`; app bar chuyển sang `surface-container` + đổ bóng khi cuộn.
+- **Typography** — thang chữ M3 qua các class `t-headline-*`, `t-title-*`, `t-body-*`, `t-label-*` (font Roboto).
+- **State layer** — class `.state` thêm lớp phủ hover 8% / focus & pressed 10% cho mọi phần tử tương tác.
+- **Component class** dùng lại: `.btn` (`btn-filled`, `btn-tonal`, `btn-outlined`, `btn-text`, `btn-error-tonal`), `.icon-btn`, `.card-filled/elevated/outlined`, `.chip`, `.m3-field` (outlined text field với nhãn nổi — xem `components/TextField.jsx`), `.m3-switch` (`components/Switch.jsx`), `.segmented` (`components/SegmentedButton.jsx`).
+- **Điều hướng** — Top app bar, Navigation bar 4 đích đến (chỉ báo dạng pill), FAB góc phải dưới, modal Navigation drawer.
+- **Phản hồi** — Dialog (bo 28dp, nút văn bản), Snackbar (`ToastContext`), Modal bottom sheet.
+- **Màu mood** (`great → angry`) giữ cố định như dữ liệu, dùng nền trong suốt 25–40% trên các container.
 
-Muốn đổi tông màu chủ đạo: sửa `primary` trong [`tailwind.config.js`](./tailwind.config.js) và `--c-accent` (2 giá trị sáng/tối) trong [`src/index.css`](./src/index.css), cùng hằng số `THEME.light/dark.accent` trong `pages/Statistics.jsx` (biểu đồ dùng màu literal, xem ghi chú bên dưới).
+Muốn đổi tông màu chủ đạo: thay bộ giá trị `--md-*` (light + dark) trong `index.css` — có thể sinh bộ mới tại [Material Theme Builder](https://material-foundation.github.io/material-theme-builder/) — cùng hằng số `THEME.light/dark` trong `pages/Statistics.jsx` (biểu đồ dùng màu literal, xem ghi chú bên dưới) và `theme_color` trong `vite.config.js`/`index.html`.
 
 Biểu đồ Recharts dùng màu literal tính từ `useIsDark()` thay vì `var()` trực tiếp trong SVG, vì một số trình duyệt không resolve đúng CSS variable trong thuộc tính SVG.
 

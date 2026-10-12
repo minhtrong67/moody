@@ -3,7 +3,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell
 } from 'recharts'
-import { ChevronLeft, ChevronRight, FileDown, Image as ImageIcon, Loader2, Smile, CalendarCheck2, Flame, Heart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, FileDown, Image as ImageIcon, Loader2, Smile, CalendarCheck2, Flame, Heart } from '../components/icons'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useActivities } from '../hooks/useActivities'
 import { useIsDark } from '../hooks/useIsDark'
@@ -12,6 +12,7 @@ import { calcStreak } from '../lib/dateUtils'
 import { latestByDate, periodLabel, buildTimeSeries, moodDistribution, getBuckets } from '../lib/statsUtils'
 import { exportStatsPdf, exportStatsImage } from '../lib/reportGenerator'
 import { StatsBodySkeleton } from '../components/PageSkeleton'
+import SegmentedButton from '../components/SegmentedButton'
 
 const PERIODS = [
   { key: 'day', label: 'Ngày', word: 'ngày' },
@@ -22,8 +23,8 @@ const PERIODS = [
 
 // Màu literal (không dùng CSS var) để đảm bảo hiển thị đúng trong SVG của Recharts ở cả 2 theme.
 const THEME = {
-  light: { ink: '#23231F', muted: '#6B6A63', line: '#DEDCD2', surface: '#FFFFFF', accent: '#0F766E' },
-  dark: { ink: '#F0EFEB', muted: '#B4B2AC', line: '#48474E', surface: '#2C2C32', accent: '#5EEAD4' }
+  light: { ink: '#191C20', muted: '#44474E', line: '#C4C6D0', surface: '#E7E8EE', accent: '#415F91' },
+  dark: { ink: '#E2E2E9', muted: '#C4C6D0', line: '#44474E', surface: '#282A2F', accent: '#AAC7FF' }
 }
 
 export default function Statistics() {
@@ -101,7 +102,7 @@ export default function Statistics() {
 
   const hasData = timeSeries.some((t) => t.count > 0)
   const tickStyle = { fontSize: 10, fill: c.muted }
-  const tooltipStyle = { fontSize: 12, borderRadius: 8, border: `1px solid ${c.line}`, background: c.surface, color: c.ink }
+  const tooltipStyle = { fontSize: 12, borderRadius: 4, border: 'none', boxShadow: '0 1px 3px rgb(0 0 0 / .3)', background: c.surface, color: c.ink }
   const legendStyle = { fontSize: 11, color: c.ink }
 
   function EmojiAxisTick({ x, y, payload }) {
@@ -128,55 +129,37 @@ export default function Statistics() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-8 max-w-lg mx-auto page-enter">
-      <h1 className="font-display text-2xl mb-5">Thống kê</h1>
+    <div className="px-4 pt-2 pb-8 max-w-lg mx-auto page-enter">
+      <h1 className="t-headline-medium mb-5">Thống kê</h1>
 
-      <div className="flex gap-2 mb-4">
-        {PERIODS.map((p) => (
-          <button
-            key={p.key}
-            onClick={() => setPeriod(p.key)}
-            className={`flex-1 py-2 rounded-full border text-sm transition-colors ${period === p.key ? 'border-primary bg-primary text-oncolor' : 'border-line bg-line/15'}`}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedButton className="mb-4" options={PERIODS} value={period} onChange={setPeriod} />
 
       <div className="flex items-center justify-between mb-5">
-        <button
-          onClick={() => shiftCursor(-1)}
-          aria-label="Kỳ trước"
-          className="w-9 h-9 rounded-full bg-line/25 text-inkmuted flex items-center justify-center"
-        >
-          <ChevronLeft size={18} />
+        <button onClick={() => shiftCursor(-1)} aria-label="Kỳ trước" className="icon-btn state">
+          <ChevronLeft size={24} />
         </button>
-        <p className="text-sm font-medium">{label}</p>
-        <button
-          onClick={() => shiftCursor(1)}
-          aria-label="Kỳ sau"
-          className="w-9 h-9 rounded-full bg-line/25 text-inkmuted flex items-center justify-center"
-        >
-          <ChevronRight size={18} />
+        <p className="t-title-medium">{label}</p>
+        <button onClick={() => shiftCursor(1)} aria-label="Kỳ sau" className="icon-btn state">
+          <ChevronRight size={24} />
         </button>
       </div>
 
-      <p className="text-xs text-inkmuted mb-2">Xuất báo cáo theo {periodMeta.word}</p>
-      <div className="grid grid-cols-2 gap-2.5 mb-8">
+      <p className="t-body-small text-on-surface-variant mb-2 px-1">Xuất báo cáo theo {periodMeta.word}</p>
+      <div className="grid grid-cols-2 gap-3 mb-8">
         <button
           onClick={handleExportPdf}
           disabled={!!exporting || !hasData}
-          className="bg-primary text-oncolor rounded-card py-3.5 font-medium disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm"
+          className="btn btn-filled state"
         >
-          {exporting === 'pdf' ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} strokeWidth={2} />}
+          {exporting === 'pdf' ? <Loader2 size={18} /> : <FileDown size={18} />}
           {exporting === 'pdf' ? 'Đang tạo…' : 'PDF'}
         </button>
         <button
           onClick={handleExportImage}
           disabled={!!exporting || !hasData}
-          className="bg-accent/10 text-accent rounded-card py-3.5 font-medium disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm"
+          className="btn btn-tonal state"
         >
-          {exporting === 'image' ? <Loader2 size={18} className="animate-spin" /> : <ImageIcon size={18} strokeWidth={2} />}
+          {exporting === 'image' ? <Loader2 size={18} /> : <ImageIcon size={18} />}
           {exporting === 'image' ? 'Đang tạo…' : 'Ảnh (PNG)'}
         </button>
       </div>
@@ -185,7 +168,7 @@ export default function Statistics() {
         <StatsBodySkeleton />
       ) : (
       <>
-      <div className="space-y-3 mb-8">
+      <div className="space-y-2 mb-8">
         <StatRow icon={Smile} label="Mood trung bình" value={stats.avg != null ? `${stats.avg.toFixed(1)}/5` : '—'} color="#8FBF7F" />
         <StatRow icon={CalendarCheck2} label="Ngày đã check-in" value={stats.checkinDays} color="#9FB8C8" />
         <StatRow icon={Flame} label="Chuỗi hiện tại" value={stats.streak} color="#F0A34E" />
@@ -193,11 +176,11 @@ export default function Statistics() {
       </div>
 
       {!hasData ? (
-        <p className="text-inkmuted text-sm text-center py-10">Chưa có dữ liệu trong khoảng thời gian này.</p>
+        <p className="t-body-medium text-on-surface-variant text-center py-10">Chưa có dữ liệu trong khoảng thời gian này.</p>
       ) : (
         <>
-          <p className="text-sm font-medium mb-2">Xu hướng mood ({label})</p>
-          <div className="w-full aspect-[4/3] max-h-64 mb-8 border border-line rounded-card p-2 bg-surface">
+          <p className="t-title-medium mb-2 px-1">Xu hướng mood ({label})</p>
+          <div className="w-full aspect-[4/3] max-h-64 mb-8 card-filled p-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
@@ -215,8 +198,8 @@ export default function Statistics() {
             </ResponsiveContainer>
           </div>
 
-          <p className="text-sm font-medium mb-2">Phân bố cảm xúc</p>
-          <div className="w-full aspect-[4/3] max-h-64 border border-line rounded-card p-2 bg-surface">
+          <p className="t-title-medium mb-2 px-1">Phân bố cảm xúc</p>
+          <div className="w-full aspect-[4/3] max-h-64 card-filled p-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={distribution} margin={{ top: 8, right: 8, left: -18, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
@@ -238,8 +221,8 @@ export default function Statistics() {
           </div>
           <LegendList items={distribution} className="mb-8" />
 
-          <p className="text-sm font-medium mb-2">Tỉ lệ cảm xúc</p>
-          <div className="w-full aspect-square max-h-72 mb-8 border border-line rounded-card p-2 bg-surface">
+          <p className="t-title-medium mb-2 px-1">Tỉ lệ cảm xúc</p>
+          <div className="w-full aspect-square max-h-72 mb-8 card-filled p-2">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -265,8 +248,8 @@ export default function Statistics() {
 
           {activityStats.length > 0 && (
             <>
-              <p className="text-sm font-medium mb-2">Hoạt động thường gặp ({label})</p>
-              <div className="w-full aspect-[4/3] max-h-64 border border-line rounded-card p-2 bg-surface">
+              <p className="t-title-medium mb-2 px-1">Hoạt động thường gặp ({label})</p>
+              <div className="w-full aspect-[4/3] max-h-64 card-filled p-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={activityStats} margin={{ top: 8, right: 8, left: -18, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
@@ -300,14 +283,14 @@ function LegendList({ items, color, className = '' }) {
       {items.map((it) => (
         <span
           key={it.key || it.id}
-          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full bg-line/25"
+          className="chip chip-static !h-8 !px-3 !gap-1.5"
         >
           <span
             className="w-2 h-2 rounded-full shrink-0"
             style={{ background: it.color || color }}
           />
           {it.emoji} {it.label}
-          <span className="text-inkmuted">· {it.count} ({Math.round((it.count / total) * 100)}%)</span>
+          <span className="text-on-surface-variant">· {it.count} ({Math.round((it.count / total) * 100)}%)</span>
         </span>
       ))}
     </div>
@@ -316,15 +299,12 @@ function LegendList({ items, color, className = '' }) {
 
 function StatRow({ icon: Icon, label, value, emoji, color }) {
   return (
-    <div
-      className="rounded-card px-4 py-3 flex items-center gap-3 border"
-      style={{ background: color + '14', borderColor: color + '40' }}
-    >
-      <span className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg" style={{ background: color + '30', color }}>
-        {emoji || <Icon size={18} strokeWidth={2.2} />}
+    <div className="card-filled px-4 py-3 flex items-center gap-4">
+      <span className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-xl" style={{ background: color + '40', color }}>
+        {emoji || <Icon size={24} />}
       </span>
-      <p className="text-sm text-inkmuted flex-1">{label}</p>
-      <p className="font-display text-lg leading-none shrink-0">{value}</p>
+      <p className="t-body-large text-on-surface-variant flex-1">{label}</p>
+      <p className="t-title-large leading-none shrink-0">{value}</p>
     </div>
   )
 }

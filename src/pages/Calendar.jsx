@@ -39,14 +39,14 @@ export default function CalendarPage() {
   return (
     <div className="px-6 pt-8">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => setCursor(new Date(year, month - 1, 1))} className="p-2 text-inkmuted">‹</button>
-        <h1 className="font-display text-xl">{MONTHS_VI[month]} {year}</h1>
-        <button onClick={() => setCursor(new Date(year, month + 1, 1))} className="p-2 text-inkmuted">›</button>
+        <button onClick={() => setCursor(new Date(year, month - 1, 1))} className="p-2 text-on-surface-variant">‹</button>
+        <h1 className="t-title-large">{MONTHS_VI[month]} {year}</h1>
+        <button onClick={() => setCursor(new Date(year, month + 1, 1))} className="p-2 text-on-surface-variant">›</button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-2">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="text-center text-xs text-inkmuted py-1">{w}</div>
+          <div key={w} className="text-center text-xs text-on-surface-variant py-1">{w}</div>
         ))}
       </div>
 
@@ -60,33 +60,33 @@ export default function CalendarPage() {
             <button
               key={i}
               onClick={() => setSelected(iso)}
-              className="aspect-square rounded-lg flex flex-col items-center justify-center text-xs gap-0.5"
+              className="aspect-square rounded-full flex flex-col items-center justify-center text-xs gap-0.5"
               style={{
                 background: m ? m.color + '33' : 'transparent',
-                border: selected === iso ? '2px solid #33314A' : '1px solid transparent'
+                border: selected === iso ? '2px solid rgb(var(--md-primary))' : '1px solid transparent'
               }}
             >
               <span>{m ? m.emoji : d}</span>
-              {m && <span className="text-[9px] text-inkmuted">{d}</span>}
+              {m && <span className="text-[9px] text-on-surface-variant">{d}</span>}
             </button>
           )
         })}
       </div>
 
       {selectedEntry ? (
-        <div className="mt-6 border border-line rounded-card p-4">
+        <div className="mt-6 card-filled p-4">
           <div className="flex items-center justify-between mb-1">
             <p className="font-medium">{moodByKey(selectedEntry.mood)?.emoji} {moodByKey(selectedEntry.mood)?.label} · {selected}</p>
-            <Link to={`/checkin/${selectedEntry.id}`} className="text-xs text-plum underline underline-offset-4 shrink-0">Sửa</Link>
+            <Link to={`/checkin/${selectedEntry.id}`} className="text-xs text-primary shrink-0">Sửa</Link>
           </div>
-          {selectedEntry.note && <p className="text-sm text-inkmuted mb-2">{selectedEntry.note}</p>}
+          {selectedEntry.note && <p className="text-sm text-on-surface-variant mb-2">{selectedEntry.note}</p>}
           {(selectedEntry.activities?.length > 0) && (
             <div className="flex flex-wrap gap-1.5">
               {selectedEntry.activities.map((id) => {
                 const a = activityById[id]
                 if (!a) return null
                 return (
-                  <span key={id} className="text-[11px] px-2 py-1 rounded-full bg-line/40 text-inkmuted flex items-center gap-1">
+                  <span key={id} className="text-[11px] px-2 py-1 rounded-full bg-surface-container-low text-on-surface-variant flex items-center gap-1">
                     <span>{a.emoji}</span>{a.label}
                   </span>
                 )
@@ -95,7 +95,7 @@ export default function CalendarPage() {
           )}
         </div>
       ) : selected ? (
-        <p className="mt-6 text-sm text-inkmuted text-center">Không có check-in ngày {selected}.</p>
+        <p className="mt-6 text-sm text-on-surface-variant text-center">Không có check-in ngày {selected}.</p>
       ) : null}
     </div>
   )

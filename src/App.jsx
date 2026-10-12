@@ -38,12 +38,12 @@ function prefetchPages() {
 // Giữ giống hệt màn hình khởi động tĩnh trong index.html để chuyển tiếp liền mạch (không nháy).
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-[18px] bg-paper">
-      <img src="/icons/icon-192.png" alt="" className="w-16 h-16 rounded-2xl animate-pulse" />
+    <div className="min-h-screen flex flex-col items-center justify-center gap-[18px] bg-surface">
+      <img src="/icons/icon-192.png" alt="" className="w-16 h-16 rounded-m3-lg animate-pulse" />
       <div className="flex gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-accent animate-bounce [animation-delay:-0.3s]" />
-        <span className="w-2 h-2 rounded-full bg-accent animate-bounce [animation-delay:-0.15s]" />
-        <span className="w-2 h-2 rounded-full bg-accent animate-bounce" />
+        <span className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+        <span className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+        <span className="w-2 h-2 rounded-full bg-primary animate-bounce" />
       </div>
     </div>
   )

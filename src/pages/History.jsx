@@ -9,13 +9,15 @@ import {
   SlidersHorizontal,
   ChevronDown,
   Clock3,
-} from "lucide-react";
+} from "../components/icons";
 import { useMoodEntries } from "../hooks/useMoodEntries";
 import { useActivities } from "../hooks/useActivities";
 import { useMoods } from "../hooks/useMoods";
 import { useToast } from "../context/ToastContext";
 import { daysInMonth, relativeDateLabel } from "../lib/dateUtils";
 import SwipeableRow from "../components/SwipeableRow";
+import SegmentedButton from "../components/SegmentedButton";
+import TextField from "../components/TextField";
 import ConfirmDialog from "../components/ConfirmDialog";
 import {
   EntryListSkeleton,
@@ -64,23 +66,18 @@ export default function History() {
   );
 
   return (
-    <div className="px-4 pt-6 max-w-lg mx-auto page-enter">
-      <h1 className="font-display text-2xl mb-4">Lịch sử check-in</h1>
+    <div className="px-4 pt-2 max-w-lg mx-auto page-enter">
+      <h1 className="t-headline-medium mb-4">Lịch sử check-in</h1>
 
-      <div className="flex gap-2 mb-5 border border-line rounded-full p-1 bg-line/15">
-        <button
-          onClick={() => setView("list")}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm transition-colors ${view === "list" ? "bg-primary text-oncolor" : "text-inkmuted"}`}
-        >
-          <List size={16} /> Danh sách
-        </button>
-        <button
-          onClick={() => setView("calendar")}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-sm transition-colors ${view === "calendar" ? "bg-primary text-oncolor" : "text-inkmuted"}`}
-        >
-          <CalendarIcon size={16} /> Lịch
-        </button>
-      </div>
+      <SegmentedButton
+        className="mb-5"
+        value={view}
+        onChange={setView}
+        options={[
+          { key: "list", label: "Danh sách", icon: List },
+          { key: "calendar", label: "Lịch", icon: CalendarIcon },
+        ]}
+      />
 
       {view === "list" ? (
         <ListView
@@ -200,99 +197,91 @@ function ListView({
         onCancel={() => setPendingDelete(null)}
       />
 
+      {/* Search bar */}
       <div className="relative mb-3">
         <Search
-          size={16}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-inkmuted"
+          size={24}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none"
         />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Tìm theo ghi chú hoặc hoạt động…"
-          className="w-full border border-line rounded-full pl-10 pr-4 py-2.5 text-sm bg-transparent focus:outline-none focus:border-accent"
+          aria-label="Tìm kiếm"
+          className="w-full h-14 rounded-full bg-surface-container-high pl-14 pr-4 t-body-large focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
 
-      <div className="border border-line rounded-lg mb-4 overflow-hidden bg-surface">
+      <div className="card-filled mb-4 overflow-hidden">
         <button
           onClick={() => setFiltersOpen((v) => !v)}
-          className="w-full flex items-center gap-2.5 px-4 py-3"
+          className="state w-full flex items-center gap-4 px-4 h-14"
+          aria-expanded={filtersOpen}
         >
-          <span className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0">
-            <SlidersHorizontal size={14} strokeWidth={2} />
-          </span>
-          <span className="flex-1 text-left text-sm font-medium">
+          <SlidersHorizontal size={24} className="text-on-surface-variant shrink-0" />
+          <span className="flex-1 text-left t-title-small">
             Bộ lọc & sắp xếp
           </span>
           {activeFilterCount > 0 && (
-            <span className="w-5 h-5 rounded-full bg-primary text-oncolor text-[10px] flex items-center justify-center shrink-0">
+            <span className="min-w-6 h-6 px-1.5 rounded-full bg-primary text-on-primary t-label-small flex items-center justify-center shrink-0">
               {activeFilterCount}
             </span>
           )}
           <ChevronDown
-            size={16}
-            className={`text-inkmuted shrink-0 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+            size={24}
+            className={`text-on-surface-variant shrink-0 transition-transform duration-200 ${filtersOpen ? "rotate-180" : ""}`}
           />
         </button>
 
         {filtersOpen && (
-          <div className="px-4 pb-4 pt-1 border-t border-line pop-in space-y-3">
-            <div>
-              <label className="block text-[11px] text-inkmuted mb-1.5 mt-3">
-                Khoảng thời gian
-              </label>
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
-                className="w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-surface"
-              >
-                {PERIOD_FILTERS.map((f) => (
-                  <option key={f.key} value={f.key}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="px-4 pb-4 pt-3 pop-in space-y-4">
+            <TextField
+              as="select"
+              label="Khoảng thời gian"
+              fieldBg="var(--md-surface-container-highest)"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+            >
+              {PERIOD_FILTERS.map((f) => (
+                <option key={f.key} value={f.key}>
+                  {f.label}
+                </option>
+              ))}
+            </TextField>
 
-            <div>
-              <label className="block text-[11px] text-inkmuted mb-1.5">
-                Cảm xúc
-              </label>
-              <select
-                value={moodFilter}
-                onChange={(e) => setMoodFilter(e.target.value)}
-                className="w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-surface"
-              >
-                <option value="all">Mọi cảm xúc</option>
-                {moods.map((m) => (
-                  <option key={m.key} value={m.key}>
-                    {m.emoji} {m.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <TextField
+              as="select"
+              label="Cảm xúc"
+              fieldBg="var(--md-surface-container-highest)"
+              value={moodFilter}
+              onChange={(e) => setMoodFilter(e.target.value)}
+            >
+              <option value="all">Mọi cảm xúc</option>
+              {moods.map((m) => (
+                <option key={m.key} value={m.key}>
+                  {m.emoji} {m.label}
+                </option>
+              ))}
+            </TextField>
 
-            <div>
-              <label className="block text-[11px] text-inkmuted mb-1.5">
-                Sắp xếp theo
-              </label>
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-surface"
-              >
-                {SORT_OPTIONS.map((o) => (
-                  <option key={o.key} value={o.key}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <TextField
+              as="select"
+              label="Sắp xếp theo"
+              fieldBg="var(--md-surface-container-highest)"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
+            </TextField>
           </div>
         )}
       </div>
 
-      <p className="text-xs text-inkmuted mb-3">
+      <p className="t-body-small text-on-surface-variant mb-3 px-1">
         {loading
           ? "Đang tải…"
           : `${filtered.length} bản ghi · vuốt để sửa hoặc xóa`}
@@ -301,11 +290,11 @@ function ListView({
       {loading ? (
         <EntryListSkeleton />
       ) : filtered.length === 0 ? (
-        <p className="text-inkmuted text-sm text-center py-16">
+        <p className="t-body-medium text-on-surface-variant text-center py-16">
           Không tìm thấy bản ghi phù hợp.
         </p>
       ) : (
-        <ul className="space-y-2.5 pb-4">
+        <ul className="space-y-2 pb-4">
           {filtered.map((e, idx) => {
             const m = moodByKey(e.mood);
             const time = e.time ? new Date(e.time) : null;
@@ -319,18 +308,18 @@ function ListView({
                   onEdit={() => navigate(`/checkin/${e.id}`)}
                   onDelete={() => setPendingDelete(e)}
                 >
-                  <div className="border border-line rounded-lg p-3.5 gap-3">
-                    <div className="flex items-start gap-4">
+                  <div className="bg-surface-container-highest p-4 rounded-m3-md">
+                    <div className="flex items-center gap-4">
                       <span
                         className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0"
-                        style={{ background: m.color + "2E" }}
+                        style={{ background: m.color + "40" }}
                       >
                         {m?.emoji}
                       </span>
-                      <div className="flex items-start flex-col gap-2">
-                        <p className="font-medium leading-tight">{m?.label}</p>
-                        <span className="flex items-center gap-1 text-xs text-inkmuted shrink-0">
-                          <Clock3 size={11} strokeWidth={2} />
+                      <div className="flex flex-col min-w-0">
+                        <p className="t-title-medium leading-tight">{m?.label}</p>
+                        <span className="flex items-center gap-1 t-body-small text-on-surface-variant">
+                          <Clock3 size={14} />
                           {relativeDateLabel(e.date)}
                           {time
                             ? `, ${time.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`
@@ -339,21 +328,18 @@ function ListView({
                       </div>
                     </div>
 
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0">
                       {e.note && (
-                        <p className="text-sm text-inkmuted mt-1.5">{e.note}</p>
+                        <p className="t-body-medium text-on-surface-variant mt-3">{e.note}</p>
                       )}
                       {e.activities?.length > 0 && (
-                        <div className="grid grid-cols-3 items-center gap-1.5 mt-2">
+                        <div className="flex flex-wrap gap-1.5 mt-3">
                           {e.activities.map((id) => {
                             const a = activityById[id];
                             if (!a) return null;
                             return (
-                              <span
-                                key={id}
-                                className="text-xs p-2 rounded-full bg-line/40 text-inkmuted flex items-center justify-center text-center gap-2"
-                              >
-                                <span className="flex-shrink-0">{a.emoji}</span>
+                              <span key={id} className="chip chip-static !bg-surface-container-low">
+                                <span>{a.emoji}</span>
                                 {a.label}
                               </span>
                             );
@@ -430,29 +416,29 @@ function CalendarView({ loading, entries, activityById, moodByKey }) {
         <button
           onClick={() => setCursor(new Date(year, month - 1, 1))}
           aria-label="Tháng trước"
-          className="w-9 h-9 rounded-full bg-line/25 text-inkmuted flex items-center justify-center"
+          className="icon-btn state"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={24} />
         </button>
-        <p className="font-display text-lg">
+        <p className="t-title-large">
           {MONTHS_VI[month]} {year}
         </p>
         <button
           onClick={() => setCursor(new Date(year, month + 1, 1))}
           aria-label="Tháng sau"
-          className="w-9 h-9 rounded-full bg-line/25 text-inkmuted flex items-center justify-center"
+          className="icon-btn state"
         >
-          <ChevronRight size={18} />
+          <ChevronRight size={24} />
         </button>
       </div>
 
-      <p className="text-xs text-inkmuted text-center mb-4">
+      <p className="t-body-small text-on-surface-variant text-center mb-4">
         Chạm vào ngày trống để tạo check-in mới
       </p>
 
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 gap-1 mb-1">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="text-center text-xs text-inkmuted py-1">
+          <div key={w} className="text-center t-label-medium text-on-surface-variant py-1">
             {w}
           </div>
         ))}
@@ -468,19 +454,19 @@ function CalendarView({ loading, entries, activityById, moodByKey }) {
             <button
               key={i}
               onClick={() => handleDayClick(iso)}
-              className="aspect-square rounded-lg flex flex-col items-center justify-center text-base gap-0.5 transition-transform active:scale-90"
+              className="state aspect-square rounded-full flex flex-col items-center justify-center text-base gap-0.5"
               style={{
-                background: m ? m.color + "33" : "rgb(var(--c-line) / 0.25)",
-                border:
+                background: m ? m.color + "40" : "transparent",
+                boxShadow:
                   selected === iso
-                    ? "2px solid rgb(var(--c-accent))"
-                    : "1px solid transparent",
+                    ? "inset 0 0 0 2px rgb(var(--md-primary))"
+                    : "none",
               }}
             >
               {m ? (
                 <span>{m.emoji}</span>
               ) : (
-                <span className="text-xs text-inkmuted">{d}</span>
+                <span className="t-body-medium">{d}</span>
               )}
             </button>
           );
@@ -488,26 +474,21 @@ function CalendarView({ loading, entries, activityById, moodByKey }) {
       </div>
 
       {selectedEntry && (
-        <div className="mt-5 border border-line rounded-lg p-4 pop-in bg-surface">
-          <div className="flex items-center justify-between mb-1">
-            <p className="font-medium">
-              {moodByKey(selectedEntry.mood)?.emoji}{" "}
-              {moodByKey(selectedEntry.mood)?.label} · {selected}
-            </p>
-          </div>
+        <div className="mt-5 card-filled p-4 pop-in">
+          <p className="t-title-medium mb-1">
+            {moodByKey(selectedEntry.mood)?.emoji}{" "}
+            {moodByKey(selectedEntry.mood)?.label} · {selected}
+          </p>
           {selectedEntry.note && (
-            <p className="text-sm text-inkmuted mb-2">{selectedEntry.note}</p>
+            <p className="t-body-medium text-on-surface-variant mb-2">{selectedEntry.note}</p>
           )}
           {selectedEntry.activities?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
+            <div className="flex flex-wrap gap-1.5 mb-2">
               {selectedEntry.activities.map((id) => {
                 const a = activityById[id];
                 if (!a) return null;
                 return (
-                  <span
-                    key={id}
-                    className="text-[11px] px-2 py-1 rounded-full bg-line/40 text-inkmuted flex items-center gap-1"
-                  >
+                  <span key={id} className="chip chip-static !bg-surface-container-low">
                     <span>{a.emoji}</span>
                     {a.label}
                   </span>
@@ -515,18 +496,18 @@ function CalendarView({ loading, entries, activityById, moodByKey }) {
               })}
             </div>
           )}
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => navigate(`/checkin/${selectedEntry.id}`)}
-              className="flex items-center justify-center gap-1.5 bg-accent/10 text-accent rounded-lg py-3 text-sm font-medium"
-            >
-              Sửa
-            </button>
+          <div className="flex justify-end gap-2 mt-2">
             <button
               onClick={() => setConfirmDelete(true)}
-              className="flex items-center justify-center gap-1.5 bg-mood-angry/10 text-mood-angry rounded-lg py-3 text-sm font-medium"
+              className="btn btn-text-error state"
             >
               Xóa
+            </button>
+            <button
+              onClick={() => navigate(`/checkin/${selectedEntry.id}`)}
+              className="btn btn-tonal state"
+            >
+              Sửa
             </button>
           </div>
         </div>

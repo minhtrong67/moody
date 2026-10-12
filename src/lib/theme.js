@@ -15,7 +15,7 @@ export function applyTheme(theme) {
   document.documentElement.classList.toggle('dark', isDark)
   // Đồng bộ màu thanh trạng thái / thanh tiêu đề của app PWA với theme đang dùng.
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', isDark ? '#202024' : '#F2F1EA')
+  if (meta) meta.setAttribute('content', isDark ? '#111318' : '#F9F9FF')
 }
 
 export function setTheme(theme) {

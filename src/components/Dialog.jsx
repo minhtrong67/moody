@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
-import { X } from 'lucide-react'
+import { createPortal } from 'react-dom'
 
+// Basic dialog của Material Design 3: bo 28dp, nền surface-container-high, tiêu đề headline-small.
+// Nút hành động đặt trong `children` (dùng <DialogActions>).
 export default function Dialog({ open, title, onClose, children }) {
   useEffect(() => {
     if (!open) return
@@ -13,20 +15,27 @@ export default function Dialog({ open, title, onClose, children }) {
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-6 bg-black/45 backdrop-blur-[2px] animate-[fadeInUp_0.18s_ease_both]"
+      className="fixed inset-0 z-50 flex items-center justify-center px-6 scrim animate-[fadeIn_0.2s_ease_both]"
       onClick={onClose}
+      role="presentation"
     >
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-sm bg-surface rounded-2xl p-5 pop-in shadow-xl">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-base font-medium">{title}</p>
-          <button onClick={onClose} aria-label="Đóng" className="w-8 h-8 rounded-full bg-line/30 text-inkmuted flex items-center justify-center active:scale-90 transition-transform">
-            <X size={14} strokeWidth={2.2} />
-          </button>
-        </div>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm bg-surface-container-high rounded-m3-xl p-6 pop-in shadow-elev-3"
+        style={{ '--field-bg': 'var(--md-surface-container-high)' }}
+      >
+        <p className="t-headline-small mb-4">{title}</p>
         {children}
       </div>
     </div>
-  )
+    , document.body)
+}
+
+export function DialogActions({ children }) {
+  return <div className="flex justify-end gap-2 mt-6">{children}</div>
 }

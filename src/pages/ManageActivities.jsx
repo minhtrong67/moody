@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Plus, Check, X, GripVertical, ArrowUp, ArrowDown, Loader2 } from 'lucide-react'
+import { Plus, GripVertical, ArrowUp, ArrowDown, Loader2 } from '../components/icons'
 import { useActivities } from '../hooks/useActivities'
 import { useToast } from '../context/ToastContext'
 import SwipeableRow from '../components/SwipeableRow'
-import Dialog from '../components/Dialog'
+import Dialog, { DialogActions } from '../components/Dialog'
+import TextField from '../components/TextField'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { ManageListSkeleton } from '../components/PageSkeleton'
 
@@ -157,63 +158,46 @@ export default function ManageActivities() {
         onCancel={() => setPendingDelete(null)}
       />
 
-      <h1 className="font-display text-2xl mb-1">Quản lý hoạt động</h1>
-      <p className="text-inkmuted text-sm mb-6">
-        Kéo biểu tượng <GripVertical size={12} className="inline -mt-0.5" /> hoặc dùng mũi tên để sắp xếp. Vuốt phải để sửa, vuốt trái để xóa.
+      <h1 className="t-headline-medium mb-1">Quản lý hoạt động</h1>
+      <p className="t-body-medium text-on-surface-variant mb-6">
+        Kéo biểu tượng <GripVertical size={16} className="inline -mt-0.5" /> hoặc dùng mũi tên để sắp xếp. Vuốt phải để sửa, vuốt trái để xóa.
       </p>
 
-      <button
-        onClick={openAdd}
-        className="w-full flex items-center justify-center gap-2 bg-primary text-oncolor rounded-lg py-3 mb-6 font-medium active:scale-[0.98] transition-transform"
-      >
-        <Plus size={17} strokeWidth={2.2} /> Thêm hoạt động mới
+      <button onClick={openAdd} className="btn btn-filled btn-lg btn-block state mb-6">
+        <Plus size={18} /> Thêm hoạt động mới
       </button>
 
       <Dialog open={formOpen} title={editingId ? 'Sửa hoạt động' : 'Hoạt động mới'} onClose={closeForm}>
-        <div className="flex gap-2 mb-4">
-          <div className="w-16 shrink-0">
-            <label className="block text-[11px] text-inkmuted mb-1 px-1">Emoji</label>
-            <input
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value.slice(-2))}
-              placeholder="😀"
-              className="w-full h-12 text-center text-xl border border-line rounded-lg bg-transparent focus:outline-none focus:border-accent"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-[11px] text-inkmuted mb-1 px-1">Tên hoạt động</label>
-            <input
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="vd: Đọc sách"
-              autoFocus
-              className="w-full h-12 border border-line rounded-lg px-4 text-sm bg-transparent focus:outline-none focus:border-accent"
-            />
-          </div>
+        <div className="flex gap-3">
+          <TextField
+            label="Emoji"
+            value={emoji}
+            onChange={(e) => setEmoji(e.target.value.slice(-2))}
+            placeholder="😀"
+            className="w-24 shrink-0 [&_input]:text-center [&_input]:text-xl [&_input]:px-2"
+          />
+          <TextField
+            label="Tên hoạt động"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="vd: Đọc sách"
+            autoFocus
+            className="flex-1"
+          />
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={closeForm}
-            disabled={saving}
-            className="flex items-center justify-center gap-1.5 bg-line/30 text-inkmuted rounded-full py-3 text-sm active:scale-95 transition-transform disabled:opacity-50"
-          >
-            <X size={15} strokeWidth={2.4} /> Hủy
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!label.trim() || saving}
-            className="flex items-center justify-center gap-1.5 bg-primary text-oncolor rounded-full py-3 text-sm active:scale-95 transition-transform disabled:opacity-60"
-          >
-            {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} strokeWidth={2.4} />}
+        <DialogActions>
+          <button onClick={closeForm} disabled={saving} className="btn btn-text state">Hủy</button>
+          <button onClick={handleSubmit} disabled={!label.trim() || saving} className="btn btn-text state">
+            {saving && <Loader2 size={16} />}
             {editingId ? 'Cập nhật' : 'Lưu'}
           </button>
-        </div>
+        </DialogActions>
       </Dialog>
 
       {loading ? (
         <ManageListSkeleton />
       ) : (
-      <ul className="space-y-2.5">
+      <ul className="space-y-2">
         {order.map((a, i) => (
           <li
             key={a.id}
@@ -222,35 +206,35 @@ export default function ManageActivities() {
             style={{ zIndex: dragActiveIndex === i ? 10 : 'auto' }}
           >
             <SwipeableRow onEdit={() => openEdit(a)} onDelete={() => setPendingDelete(a)}>
-              <div className={`flex items-center gap-3 border rounded-lg p-3 bg-surface transition-shadow ${dragActiveIndex === i ? 'shadow-lg border-accent' : 'border-line'}`}>
+              <div className={`flex items-center gap-2 rounded-m3-md px-2 py-2 transition-shadow ${dragActiveIndex === i ? 'shadow-elev-3 bg-surface-container-high' : 'bg-surface-container-highest'}`}>
                 <span
                   onPointerDown={(e) => handleGripPointerDown(e, i)}
-                  className="text-inkmuted cursor-grab active:cursor-grabbing shrink-0 touch-none p-1"
+                  className="text-on-surface-variant cursor-grab active:cursor-grabbing shrink-0 touch-none p-1"
                   aria-label="Kéo để sắp xếp"
                 >
-                  <GripVertical size={16} strokeWidth={2} />
+                  <GripVertical size={24} />
                 </span>
-                <span className="w-10 h-10 rounded-full bg-line/25 flex items-center justify-center text-lg shrink-0">{a.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{a.label}</p>
-                  <p className="text-[11px] text-inkmuted">{a.custom ? 'Tự tạo' : 'Mặc định'}</p>
+                <span className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-xl shrink-0">{a.emoji}</span>
+                <div className="flex-1 min-w-0 pl-1">
+                  <p className="t-body-large truncate">{a.label}</p>
+                  <p className="t-body-small text-on-surface-variant">{a.custom ? 'Tự tạo' : 'Mặc định'}</p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center shrink-0">
                   <button
                     onClick={() => move(i, -1)}
                     disabled={i === 0}
                     aria-label="Di chuyển lên"
-                    className="w-9 h-9 rounded-full bg-line/25 text-inkmuted flex items-center justify-center disabled:opacity-30 active:scale-90 transition-transform"
+                    className="icon-btn state"
                   >
-                    <ArrowUp size={16} strokeWidth={2.2} />
+                    <ArrowUp size={24} />
                   </button>
                   <button
                     onClick={() => move(i, 1)}
                     disabled={i === order.length - 1}
                     aria-label="Di chuyển xuống"
-                    className="w-9 h-9 rounded-full bg-line/25 text-inkmuted flex items-center justify-center disabled:opacity-30 active:scale-90 transition-transform"
+                    className="icon-btn state"
                   >
-                    <ArrowDown size={16} strokeWidth={2.2} />
+                    <ArrowDown size={24} />
                   </button>
                 </div>
               </div>

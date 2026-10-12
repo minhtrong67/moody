@@ -2,28 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =====================================================================
+   Material Design 3 — color roles (seed #769CDF — Material Theme Builder export)
+   Giá trị dạng "R G B" để dùng được với opacity của Tailwind (bg-primary/10…).
+   ===================================================================== */
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --font-scale: 1;
   color-scheme: light;
 
-  --c-paper: 242 241 234;
-  --c-ink: 35 35 31;
-  --c-inkmuted: 107 106 99;
-  --c-line: 222 220 210;
-  --c-surface: 255 255 255;
-  --c-accent: 15 118 110;
+  --md-primary: 65 95 145;
+  --md-on-primary: 255 255 255;
+  --md-primary-container: 214 227 255;
+  --md-on-primary-container: 40 71 119;
+  --md-secondary: 86 95 113;
+  --md-on-secondary: 255 255 255;
+  --md-secondary-container: 218 226 249;
+  --md-on-secondary-container: 62 71 89;
+  --md-tertiary: 112 85 117;
+  --md-on-tertiary: 255 255 255;
+  --md-tertiary-container: 250 216 253;
+  --md-on-tertiary-container: 87 62 92;
+  --md-error: 186 26 26;
+  --md-on-error: 255 255 255;
+  --md-error-container: 255 218 214;
+  --md-on-error-container: 147 0 10;
+  --md-surface: 249 249 255;
+  --md-surface-dim: 217 217 224;
+  --md-surface-container-lowest: 255 255 255;
+  --md-surface-container-low: 243 243 250;
+  --md-surface-container: 237 237 244;
+  --md-surface-container-high: 231 232 238;
+  --md-surface-container-highest: 226 226 233;
+  --md-on-surface: 25 28 32;
+  --md-on-surface-variant: 68 71 78;
+  --md-outline: 116 119 127;
+  --md-outline-variant: 196 198 208;
+  --md-inverse-surface: 46 48 54;
+  --md-inverse-on-surface: 240 240 247;
+  --md-inverse-primary: 170 199 255;
 }
 
 html.dark {
   color-scheme: dark;
-  --c-paper: 32 32 36;
-  --c-ink: 240 239 235;
-  --c-inkmuted: 180 178 172;
-  --c-line: 72 71 78;
-  --c-surface: 44 44 50;
-  --c-accent: 94 234 212;
+
+  --md-primary: 170 199 255;
+  --md-on-primary: 10 48 95;
+  --md-primary-container: 40 71 119;
+  --md-on-primary-container: 214 227 255;
+  --md-secondary: 190 198 220;
+  --md-on-secondary: 40 49 65;
+  --md-secondary-container: 62 71 89;
+  --md-on-secondary-container: 218 226 249;
+  --md-tertiary: 221 188 224;
+  --md-on-tertiary: 63 40 68;
+  --md-tertiary-container: 87 62 92;
+  --md-on-tertiary-container: 250 216 253;
+  --md-error: 255 180 171;
+  --md-on-error: 105 0 5;
+  --md-error-container: 147 0 10;
+  --md-on-error-container: 255 218 214;
+  --md-surface: 17 19 24;
+  --md-surface-dim: 17 19 24;
+  --md-surface-container-lowest: 12 14 19;
+  --md-surface-container-low: 25 28 32;
+  --md-surface-container: 29 32 36;
+  --md-surface-container-high: 40 42 47;
+  --md-surface-container-highest: 51 53 58;
+  --md-on-surface: 226 226 233;
+  --md-on-surface-variant: 196 198 208;
+  --md-outline: 142 144 153;
+  --md-outline-variant: 68 71 78;
+  --md-inverse-surface: 226 226 233;
+  --md-inverse-on-surface: 46 48 54;
+  --md-inverse-primary: 65 95 145;
 }
 
 html {
@@ -35,6 +88,9 @@ html, body, #root {
 }
 
 body {
+  font-family: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: rgb(var(--md-surface));
+  color: rgb(var(--md-on-surface));
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -51,49 +107,338 @@ button {
   cursor: pointer;
 }
 
-button, a, input, textarea, select, .transition-theme {
-  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
+:focus-visible {
+  outline: 2px solid rgb(var(--md-primary));
+  outline-offset: 2px;
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgb(var(--md-on-surface-variant));
+  opacity: 0.8;
+}
+
+select option {
+  background: rgb(var(--md-surface-container-high));
+  color: rgb(var(--md-on-surface));
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* =====================================================================
+   Typography scale (M3)
+   ===================================================================== */
+@layer components {
+  .t-headline-medium { font-size: 1.75rem; line-height: 2.25rem; font-weight: 400; }
+  .t-headline-small  { font-size: 1.5rem;  line-height: 2rem;    font-weight: 400; }
+  .t-title-large     { font-size: 1.375rem; line-height: 1.75rem; font-weight: 400; }
+  .t-title-medium    { font-size: 1rem;    line-height: 1.5rem;  font-weight: 500; letter-spacing: 0.009em; }
+  .t-title-small     { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; letter-spacing: 0.007em; }
+  .t-body-large      { font-size: 1rem;    line-height: 1.5rem;  font-weight: 400; letter-spacing: 0.03em; }
+  .t-body-medium     { font-size: 0.875rem; line-height: 1.25rem; font-weight: 400; letter-spacing: 0.018em; }
+  .t-body-small      { font-size: 0.75rem; line-height: 1rem;    font-weight: 400; letter-spacing: 0.033em; }
+  .t-label-large     { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; letter-spacing: 0.007em; }
+  .t-label-medium    { font-size: 0.75rem; line-height: 1rem;    font-weight: 500; letter-spacing: 0.042em; }
+  .t-label-small     { font-size: 0.6875rem; line-height: 1rem;  font-weight: 500; letter-spacing: 0.045em; }
+
+  /* ---------- State layer: hover 8% · focus 10% · pressed 10% ---------- */
+  .state {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .state::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+    transition: opacity 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+  @media (hover: hover) {
+    .state:hover:not(:disabled)::before { opacity: 0.08; }
+  }
+  .state:focus-visible::before { opacity: 0.1; }
+  .state:active:not(:disabled)::before { opacity: 0.1; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 24px;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    letter-spacing: 0.007em;
+    white-space: nowrap;
+    user-select: none;
+    transition: box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .btn-filled   { background: rgb(var(--md-primary)); color: rgb(var(--md-on-primary)); }
+  .btn-filled:hover:not(:disabled) { box-shadow: 0 1px 2px rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15); }
+  .btn-tonal    { background: rgb(var(--md-secondary-container)); color: rgb(var(--md-on-secondary-container)); }
+  .btn-outlined { color: rgb(var(--md-primary)); box-shadow: inset 0 0 0 1px rgb(var(--md-outline)); }
+  .btn-text     { color: rgb(var(--md-primary)); padding: 0 12px; }
+  .btn-error    { background: rgb(var(--md-error)); color: rgb(var(--md-on-error)); }
+  .btn-text-error { color: rgb(var(--md-error)); padding: 0 12px; }
+  .btn-error-tonal { background: rgb(var(--md-error-container)); color: rgb(var(--md-on-error-container)); }
+  .btn-block { width: 100%; }
+  .btn-lg { height: 48px; }
+  .btn:disabled {
+    cursor: default;
+    box-shadow: none;
+    color: rgb(var(--md-on-surface) / 0.38);
+  }
+  .btn-filled:disabled, .btn-tonal:disabled, .btn-error:disabled, .btn-error-tonal:disabled {
+    background: rgb(var(--md-on-surface) / 0.12);
+  }
+  .btn-outlined:disabled { box-shadow: inset 0 0 0 1px rgb(var(--md-on-surface) / 0.12); }
+
+  /* ---------- Icon buttons ---------- */
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    color: rgb(var(--md-on-surface-variant));
+  }
+  .icon-btn-sm { width: 32px; height: 32px; }
+  .icon-btn-filled-tonal { background: rgb(var(--md-secondary-container)); color: rgb(var(--md-on-secondary-container)); }
+  .icon-btn-primary { color: rgb(var(--md-primary)); }
+  .icon-btn:disabled { color: rgb(var(--md-on-surface) / 0.38); }
+
+  /* ---------- Cards ---------- */
+  .card-filled   { background: rgb(var(--md-surface-container-highest)); border-radius: 12px; }
+  .card-elevated { background: rgb(var(--md-surface-container-low)); border-radius: 12px; box-shadow: 0 1px 2px rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15); }
+  .card-outlined { background: rgb(var(--md-surface)); border-radius: 12px; box-shadow: inset 0 0 0 1px rgb(var(--md-outline-variant)); }
+  .card-tonal    { background: rgb(var(--md-surface-container-low)); border-radius: 12px; }
+
+  /* ---------- Chips ---------- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    letter-spacing: 0.007em;
+    color: rgb(var(--md-on-surface-variant));
+    box-shadow: inset 0 0 0 1px rgb(var(--md-outline));
+    white-space: nowrap;
+    transition: background-color 0.2s, box-shadow 0.2s;
+  }
+  .chip-selected {
+    background: rgb(var(--md-secondary-container));
+    color: rgb(var(--md-on-secondary-container));
+    box-shadow: none;
+  }
+  .chip-static {
+    height: 24px;
+    padding: 0 8px;
+    gap: 4px;
+    font-size: 0.75rem;
+    box-shadow: none;
+    background: rgb(var(--md-surface-container-highest));
+  }
+
+  /* ---------- Outlined text field (floating label) ---------- */
+  .m3-field {
+    position: relative;
+  }
+  .m3-input {
+    display: block;
+    width: 100%;
+    height: 56px;
+    padding: 0 16px;
+    border-radius: 4px;
+    background: transparent;
+    color: rgb(var(--md-on-surface));
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+    border: 1px solid rgb(var(--md-outline));
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  textarea.m3-input {
+    height: auto;
+    min-height: 56px;
+    padding: 16px;
+    resize: none;
+    overflow: hidden;
+    line-height: 24px;
+  }
+  select.m3-input {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 48px;
+  }
+  .m3-input.has-leading { padding-left: 48px; }
+  .m3-input:hover:not(:focus):not(:disabled) { border-color: rgb(var(--md-on-surface)); }
+  .m3-input:focus {
+    border-color: rgb(var(--md-primary));
+    box-shadow: 0 0 0 1px rgb(var(--md-primary));
+  }
+  .m3-input::placeholder { color: transparent; }
+  .m3-input:focus::placeholder { color: rgb(var(--md-on-surface-variant)); opacity: 0.8; }
+  .m3-field > label {
+    position: absolute;
+    left: 12px;
+    top: 16px;
+    padding: 0 4px;
+    line-height: 24px;
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+    color: rgb(var(--md-on-surface-variant));
+    background: rgb(var(--field-bg, var(--md-surface)));
+    transform-origin: left top;
+    pointer-events: none;
+    transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), color 0.15s;
+    max-width: calc(100% - 24px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .m3-field > .m3-input:focus ~ label,
+  .m3-field > .m3-input:not(:placeholder-shown) ~ label,
+  .m3-field.is-float > label {
+    transform: translateY(-24px) scale(0.75);
+  }
+  .m3-field > .m3-input:focus ~ label { color: rgb(var(--md-primary)); }
+  .m3-field > .field-icon {
+    position: absolute;
+    top: 16px;
+    width: 24px;
+    height: 24px;
+    pointer-events: none;
+    color: rgb(var(--md-on-surface-variant));
+  }
+
+  /* ---------- Switch ---------- */
+  .m3-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 52px;
+    height: 32px;
+    border-radius: 9999px;
+    background: rgb(var(--md-surface-container-highest));
+    box-shadow: inset 0 0 0 2px rgb(var(--md-outline));
+    transition: background-color 0.2s, box-shadow 0.2s;
+  }
+  .m3-switch[aria-checked='true'] {
+    background: rgb(var(--md-primary));
+    box-shadow: none;
+  }
+  .m3-switch .thumb {
+    position: absolute;
+    top: 50%;
+    left: 4px;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border-radius: 9999px;
+    background: rgb(var(--md-outline));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), width 0.2s, height 0.2s, margin-top 0.2s, left 0.2s, background-color 0.2s;
+  }
+  .m3-switch[aria-checked='true'] .thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -12px;
+    left: 4px;
+    transform: translateX(20px);
+    background: rgb(var(--md-on-primary));
+    color: rgb(var(--md-on-primary-container));
+  }
+  .m3-switch:active .thumb { width: 28px; height: 28px; margin-top: -14px; left: 2px; }
+  .m3-switch[aria-checked='true']:active .thumb { transform: translateX(20px); left: 2px; }
+
+  /* ---------- Segmented button ---------- */
+  .segmented {
+    display: flex;
+    width: 100%;
+    height: 40px;
+    border-radius: 9999px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgb(var(--md-outline));
+  }
+  .segmented > button {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: rgb(var(--md-on-surface));
+    transition: background-color 0.2s;
+  }
+  .segmented > button + button { box-shadow: inset 1px 0 0 rgb(var(--md-outline)); }
+  .segmented > button[aria-pressed='true'] {
+    background: rgb(var(--md-secondary-container));
+    color: rgb(var(--md-on-secondary-container));
+  }
+
+  /* ---------- Dialog scrim ---------- */
+  .scrim { background: rgb(0 0 0 / 0.32); }
+
+  /* ---------- Progress ---------- */
+  .m3-spinner { animation: m3-rotate 1.4s linear infinite; }
+  .m3-spinner circle { stroke-dasharray: 1 56; stroke-dashoffset: 0; animation: m3-dash 1.4s ease-in-out infinite; }
+}
+
+@keyframes m3-rotate { to { transform: rotate(360deg); } }
+@keyframes m3-dash {
+  0%   { stroke-dasharray: 1 56;  stroke-dashoffset: 0; }
+  50%  { stroke-dasharray: 38 56; stroke-dashoffset: -15; }
+  100% { stroke-dasharray: 38 56; stroke-dashoffset: -53; }
+}
+
+/* =====================================================================
+   Motion — M3 emphasized easing
+   ===================================================================== */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-.page-enter {
-  animation: fadeInUp 0.32s ease both;
-}
+.page-enter { animation: fadeInUp 0.4s cubic-bezier(0.05, 0.7, 0.1, 1) both; }
 
 @keyframes popIn {
   from { opacity: 0; transform: scale(0.92); }
   to { opacity: 1; transform: scale(1); }
 }
-
-.pop-in {
-  animation: popIn 0.22s ease both;
-}
+.pop-in { animation: popIn 0.3s cubic-bezier(0.05, 0.7, 0.1, 1) both; }
 
 @keyframes sheetUp {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(32px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-input::placeholder, textarea::placeholder {
-  color: rgb(var(--c-inkmuted));
-  opacity: 0.8;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-
-select option {
-  background: rgb(var(--c-surface));
-  color: rgb(var(--c-ink));
-}
-
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -109,7 +454,12 @@ select option {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, rgb(var(--c-line) / 0.4) 25%, rgb(var(--c-line) / 0.7) 37%, rgb(var(--c-line) / 0.4) 63%);
+  background: linear-gradient(
+    90deg,
+    rgb(var(--md-surface-container-high)) 25%,
+    rgb(var(--md-surface-container-highest)) 37%,
+    rgb(var(--md-surface-container-high)) 63%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }

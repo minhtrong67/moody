@@ -1,8 +1,8 @@
 // Bộ skeleton dùng chung: mỗi khối mô phỏng đúng hình dạng nội dung thật để
 // tránh "nhảy layout" khi dữ liệu về.
 
-export function Skeleton({ className = '' }) {
-  return <div className={`skeleton ${className}`} aria-hidden="true" />
+export function Skeleton({ className = '', style }) {
+  return <div className={`skeleton ${className}`} style={style} aria-hidden="true" />
 }
 
 // Danh sách card check-in (Lịch sử)
@@ -10,7 +10,7 @@ export function EntryListSkeleton({ count = 5 }) {
   return (
     <ul className="space-y-2.5 pb-4" aria-busy="true" aria-label="Đang tải">
       {Array.from({ length: count }).map((_, i) => (
-        <li key={i} className="border border-line rounded-lg p-3.5 flex gap-3 bg-surface">
+        <li key={i} className="card-filled p-4 flex gap-3">
           <Skeleton className="w-12 h-12 rounded-full shrink-0" />
           <div className="flex-1 space-y-2.5">
             <div className="flex justify-between gap-3">
@@ -40,7 +40,7 @@ export function CalendarSkeleton() {
       </div>
       <div className="grid grid-cols-7 gap-1">
         {Array.from({ length: 35 }).map((_, i) => (
-          <Skeleton key={i} className="aspect-square rounded-lg" />
+          <Skeleton key={i} className="aspect-square rounded-m3-md" />
         ))}
       </div>
     </div>
@@ -50,7 +50,7 @@ export function CalendarSkeleton() {
 // Thẻ trạng thái hôm nay (hero Dashboard)
 export function TodayCardSkeleton() {
   return (
-    <div className="relative border border-line rounded-card p-4 flex items-center gap-4 bg-surface" aria-busy="true">
+    <div className="relative card-filled p-4 flex items-center gap-4" aria-busy="true">
       <Skeleton className="w-14 h-14 rounded-full shrink-0" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-36 rounded" />
@@ -67,7 +67,7 @@ export function DashboardBodySkeleton() {
     <div aria-busy="true" aria-label="Đang tải">
       <div className="grid grid-cols-3 gap-3 mb-9">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-[104px] rounded-card" />
+          <Skeleton key={i} className="h-[104px] rounded-m3-md" />
         ))}
       </div>
       <Skeleton className="h-4 w-20 rounded mb-3" />
@@ -82,7 +82,7 @@ export function DashboardBodySkeleton() {
       <Skeleton className="h-4 w-32 rounded mb-3" />
       <div className="space-y-2">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-[58px] rounded-card" />
+          <Skeleton key={i} className="h-[58px] rounded-m3-md" />
         ))}
       </div>
     </div>
@@ -95,20 +95,20 @@ export function StatsBodySkeleton() {
     <div aria-busy="true" aria-label="Đang tải">
       <div className="space-y-3 mb-8">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-[58px] rounded-card" />
+          <Skeleton key={i} className="h-[58px] rounded-m3-md" />
         ))}
       </div>
       <Skeleton className="h-4 w-40 rounded mb-2" />
-      <Skeleton className="w-full aspect-[4/3] max-h-64 rounded-card mb-8" />
+      <Skeleton className="w-full aspect-[4/3] max-h-64 rounded-m3-md mb-8" />
       <Skeleton className="h-4 w-32 rounded mb-2" />
-      <Skeleton className="w-full aspect-[4/3] max-h-64 rounded-card mb-3" />
+      <Skeleton className="w-full aspect-[4/3] max-h-64 rounded-m3-md mb-3" />
       <div className="flex flex-wrap gap-2 mb-8">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-7 w-24 rounded-full" />
         ))}
       </div>
       <Skeleton className="h-4 w-28 rounded mb-2" />
-      <Skeleton className="w-full aspect-square max-h-72 rounded-card" />
+      <Skeleton className="w-full aspect-square max-h-72 rounded-m3-md" />
     </div>
   )
 }
@@ -116,12 +116,9 @@ export function StatsBodySkeleton() {
 // Lưới hoạt động (Check-in)
 export function ActivityGridSkeleton() {
   return (
-    <div className="grid grid-cols-5 gap-x-2 gap-y-4" aria-busy="true" aria-label="Đang tải">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <div key={i} className="flex flex-col items-center gap-1.5">
-          <Skeleton className="w-12 h-12 rounded-full" />
-          <Skeleton className="h-2 w-9 rounded" />
-        </div>
+    <div className="flex flex-wrap gap-2" aria-busy="true" aria-label="Đang tải">
+      {[88, 96, 80, 104, 92, 84, 100, 90, 98, 86].map((w, i) => (
+        <Skeleton key={i} className="h-8 rounded-m3-sm" style={{ width: w }} />
       ))}
     </div>
   )
@@ -146,7 +143,7 @@ export function ManageListSkeleton({ count = 6 }) {
   return (
     <ul className="space-y-2.5" aria-busy="true" aria-label="Đang tải">
       {Array.from({ length: count }).map((_, i) => (
-        <li key={i} className="flex items-center gap-3 border border-line rounded-lg p-3 bg-surface">
+        <li key={i} className="flex items-center gap-3 card-filled p-3">
           <Skeleton className="w-4 h-6 rounded shrink-0" />
           <Skeleton className="w-10 h-10 rounded-full shrink-0" />
           <div className="flex-1 space-y-2">
@@ -165,7 +162,7 @@ export function ManageListSkeleton({ count = 6 }) {
 const VARIANTS = {
   dashboard: () => (
     <div className="max-w-lg mx-auto">
-      <div className="bg-accent/10 px-4 pt-6 pb-7 mb-6 rounded-b-[1.5rem]">
+      <div className="bg-primary-container/40 px-4 pt-6 pb-7 mb-6 rounded-b-m3-xl">
         <Skeleton className="h-3 w-28 rounded mb-2" />
         <Skeleton className="h-7 w-52 rounded mb-1.5" />
         <Skeleton className="h-7 w-40 rounded mb-5" />
@@ -177,9 +174,9 @@ const VARIANTS = {
   history: () => (
     <div className="px-4 pt-6 max-w-lg mx-auto">
       <Skeleton className="h-7 w-44 rounded mb-4" />
-      <Skeleton className="h-11 w-full rounded-full mb-5" />
-      <Skeleton className="h-11 w-full rounded-full mb-3" />
-      <Skeleton className="h-12 w-full rounded-lg mb-4" />
+      <Skeleton className="h-10 w-full rounded-full mb-5" />
+      <Skeleton className="h-14 w-full rounded-full mb-3" />
+      <Skeleton className="h-14 w-full rounded-m3-md mb-4" />
       <EntryListSkeleton />
     </div>
   ),
@@ -187,8 +184,8 @@ const VARIANTS = {
     <div className="px-4 pt-6 pb-8 max-w-lg mx-auto">
       <Skeleton className="h-7 w-28 rounded mb-5" />
       <Skeleton className="h-10 w-full rounded-full mb-4" />
-      <Skeleton className="h-9 w-full rounded-full mb-5" />
-      <Skeleton className="h-12 w-full rounded-lg mb-8" />
+      <Skeleton className="h-10 w-full rounded-full mb-5" />
+      <Skeleton className="h-10 w-full rounded-full mb-8" />
       <StatsBodySkeleton />
     </div>
   ),
@@ -196,7 +193,7 @@ const VARIANTS = {
     <div className="px-4 pt-6 pb-8 max-w-lg mx-auto">
       <Skeleton className="h-7 w-48 rounded mb-2" />
       <Skeleton className="h-3.5 w-64 rounded mb-6" />
-      <Skeleton className="h-12 w-full rounded-lg mb-6" />
+      <Skeleton className="h-12 w-full rounded-m3-md mb-6" />
       <ManageListSkeleton />
     </div>
   ),
@@ -205,13 +202,13 @@ const VARIANTS = {
       <Skeleton className="h-8 w-24 rounded-full mb-5" />
       <Skeleton className="h-7 w-32 rounded mb-2" />
       <Skeleton className="h-3.5 w-48 rounded mb-5" />
-      <Skeleton className="h-14 w-full rounded-lg mb-6" />
+      <Skeleton className="h-14 w-full rounded-m3-md mb-6" />
       <MoodPickerSkeleton />
       <Skeleton className="h-4 w-40 rounded mb-4" />
       <ActivityGridSkeleton />
       <Skeleton className="h-4 w-28 rounded mt-7 mb-3" />
-      <Skeleton className="h-20 w-full rounded-lg mb-8" />
-      <Skeleton className="h-12 w-full rounded-lg" />
+      <Skeleton className="h-20 w-full rounded-m3-md mb-8" />
+      <Skeleton className="h-12 w-full rounded-m3-md" />
     </div>
   ),
   settings: () => (

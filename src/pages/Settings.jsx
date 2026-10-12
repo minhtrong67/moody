@@ -2,8 +2,11 @@ import { useState } from 'react'
 import {
   Sun, Moon, Monitor, Smartphone, Bell, LineChart, CalendarRange,
   Download, Trash2, LogOut, Heart, Send, Loader2
-} from 'lucide-react'
+} from '../components/icons'
 import ConfirmDialog from '../components/ConfirmDialog'
+import Switch from '../components/Switch'
+import SegmentedButton from '../components/SegmentedButton'
+import TextField from '../components/TextField'
 import { todayISO } from '../lib/dateUtils'
 import { useAuth } from '../context/AuthContext'
 import { useMoodEntries } from '../hooks/useMoodEntries'
@@ -95,7 +98,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-4 max-w-lg mx-auto page-enter">
+    <div className="px-4 pt-2 pb-4 max-w-lg mx-auto page-enter">
       <ConfirmDialog
         open={confirmClear}
         title="Xóa toàn bộ dữ liệu?"
@@ -105,71 +108,46 @@ export default function Settings() {
         onConfirm={clearAll}
         onCancel={() => setConfirmClear(false)}
       />
-      <h1 className="font-display text-2xl mb-6">Cài đặt</h1>
+      <h1 className="t-headline-medium mb-6">Cài đặt</h1>
 
       {user && (
-        <div className="flex items-center gap-3 mb-6 border border-line rounded-card p-4 bg-surface">
-          <img src={user.photoURL} alt="" className="w-11 h-11 rounded-full" />
+        <div className="flex items-center gap-4 mb-6 card-filled p-4">
+          <img src={user.photoURL} alt="" className="w-12 h-12 rounded-full" />
           <div className="flex-1 min-w-0">
-            <p className="font-medium truncate">{user.displayName}</p>
-            <p className="text-xs text-inkmuted truncate">{user.email}</p>
+            <p className="t-title-medium truncate">{user.displayName}</p>
+            <p className="t-body-medium text-on-surface-variant truncate">{user.email}</p>
           </div>
-          <button onClick={logout} className="flex items-center gap-1.5 text-sm text-mood-angry bg-mood-angry/10 rounded-full px-3 py-2 shrink-0">
-            <LogOut size={14} strokeWidth={2} /> Đăng xuất
+          <button onClick={logout} className="btn btn-text-error state shrink-0">
+            <LogOut size={18} /> Đăng xuất
           </button>
         </div>
       )}
 
       {canInstall && !installed && (
-        <div className="mb-8 border border-line rounded-card p-4 flex items-center gap-4 bg-accent/5">
-          <span className="w-12 h-12 rounded-full bg-accent/15 text-accent flex items-center justify-center shrink-0">
-            <Smartphone size={22} />
+        <div className="mb-8 bg-primary-container text-on-primary-container rounded-m3-xl p-5 flex items-center gap-4">
+          <span className="w-12 h-12 rounded-full bg-surface/60 flex items-center justify-center shrink-0">
+            <Smartphone size={24} />
           </span>
           <div className="flex-1">
-            <p className="font-medium">Cài đặt ứng dụng</p>
-            <p className="text-xs text-inkmuted">Thêm vào màn hình chính để dùng như app, mở nhanh hơn.</p>
+            <p className="t-title-medium">Cài đặt ứng dụng</p>
+            <p className="t-body-medium opacity-80">Thêm vào màn hình chính để dùng như app, mở nhanh hơn.</p>
           </div>
-          <button onClick={promptInstall} className="bg-primary text-oncolor text-sm px-4 py-2 rounded-full shrink-0">
+          <button onClick={promptInstall} className="btn btn-filled state shrink-0">
             Cài đặt
           </button>
         </div>
       )}
 
       <SettingGroup title="Giao diện">
-        <div className="flex gap-2">
-          {THEMES.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => handleTheme(t.key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-full border text-sm transition-colors ${
-                theme === t.key ? 'border-primary bg-primary text-oncolor' : 'border-line bg-line/25'
-              }`}
-            >
-              <t.icon size={15} strokeWidth={2} />{t.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedButton options={THEMES} value={theme} onChange={handleTheme} />
       </SettingGroup>
 
       <SettingGroup title="Cỡ chữ">
-        <div className="flex gap-2">
-          {FONT_SIZES.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => handleFontScale(f.key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-full border transition-colors ${
-                fontScale === f.key ? 'border-primary bg-primary text-oncolor' : 'border-line bg-line/25'
-              }`}
-            >
-              <span className="font-semibold" style={{ fontSize: f.size }}>A</span>
-              <span className="text-[11px]">{f.label}</span>
-            </button>
-          ))}
-        </div>
+        <SegmentedButton options={FONT_SIZES} value={fontScale} onChange={handleFontScale} />
       </SettingGroup>
 
       <SettingGroup title="Thông báo">
-        <div className="space-y-3">
+        <div className="card-filled overflow-hidden">
           <ToggleRow
             icon={Bell}
             label="Nhắc check-in hằng ngày"
@@ -177,11 +155,14 @@ export default function Settings() {
             onToggle={() => toggleNotif('dailyEnabled', 'dailyEnabled')}
           >
             {notif.dailyEnabled && (
-              <input
+              <TextField
+                label="Giờ nhắc"
                 type="time"
+                alwaysFloat
+                fieldBg="var(--md-surface-container-highest)"
                 value={notif.dailyTime}
                 onChange={(e) => handleDailyTime(e.target.value)}
-                className="mt-2 border border-line rounded-full px-3 py-1.5 text-sm bg-surface"
+                className="mt-3 w-44"
               />
             )}
           </ToggleRow>
@@ -202,7 +183,7 @@ export default function Settings() {
         </div>
 
         {permission === 'denied' && (
-          <p className="text-xs text-mood-angry mt-3">
+          <p className="t-body-small text-error mt-3 px-1">
             Thông báo đang bị chặn ở trình duyệt. Vào cài đặt trình duyệt để cho phép thông báo cho trang này.
           </p>
         )}
@@ -210,46 +191,42 @@ export default function Settings() {
         <button
           onClick={handleTestNotification}
           disabled={testSending}
-          className="w-full flex items-center justify-center gap-2 mt-3 bg-line/30 text-ink rounded-full py-2.5 text-sm font-medium disabled:opacity-60 active:scale-95 transition-transform"
+          className="btn btn-tonal btn-block state mt-4"
         >
-          {testSending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} strokeWidth={2} />}
+          {testSending ? <Loader2 size={18} /> : <Send size={18} />}
           {testSending ? 'Đang gửi…' : testSent ? 'Đã gửi — kiểm tra thông báo trên máy' : 'Gửi thử thông báo ngay'}
         </button>
 
-        <p className="text-xs text-inkmuted mt-3">
+        <p className="t-body-small text-on-surface-variant mt-3 px-1">
           Thông báo hoạt động khi Moody đang mở trong trình duyệt/PWA (kể cả chạy nền một lúc). Để nhắc nhở kể cả khi đã tắt hẳn app cần thêm máy chủ đẩy thông báo (push server).
         </p>
       </SettingGroup>
 
       <SettingGroup title="Dữ liệu">
         <div className="space-y-2">
-          <button onClick={exportData} className="w-full flex items-center gap-3 text-left px-4 py-3 border border-line rounded-card bg-line/25">
-            <span className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0">
-              <Download size={15} strokeWidth={2} />
-            </span>
+          <button onClick={exportData} className="btn btn-outlined btn-block state justify-start">
+            <Download size={18} />
             Xuất dữ liệu (.json)
           </button>
-          <p className="text-xs text-inkmuted px-1">Import: chọn file .json đã xuất trước đó để khôi phục (sẽ bổ sung ở bản sau).</p>
+          <p className="t-body-small text-on-surface-variant px-1">Import: chọn file .json đã xuất trước đó để khôi phục (sẽ bổ sung ở bản sau).</p>
           <button
             onClick={() => setConfirmClear(true)}
             disabled={entries.length === 0}
-            className="w-full flex items-center gap-3 text-left px-4 py-3 border border-mood-angry text-mood-angry rounded-card bg-mood-angry/10 active:scale-[0.99] transition-transform disabled:opacity-40"
+            className="btn btn-error-tonal btn-block state justify-start"
           >
-            <span className="w-8 h-8 rounded-full bg-mood-angry/15 flex items-center justify-center shrink-0">
-              <Trash2 size={15} strokeWidth={2} />
-            </span>
+            <Trash2 size={18} />
             Xóa toàn bộ dữ liệu
           </button>
         </div>
       </SettingGroup>
 
-      <div className="border border-line rounded-card p-4 flex items-center gap-3 bg-line/15">
-        <span className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-          <Heart size={16} strokeWidth={2} />
+      <div className="card-outlined p-4 flex items-center gap-4">
+        <span className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
+          <Heart size={20} />
         </span>
-        <div className="text-xs text-inkmuted leading-relaxed">
-          <p className="text-sm text-ink font-medium mb-0.5">Moody</p>
-          <p>Được phát triển bởi <span className="font-medium text-ink">minhtrong67</span>, với sự hỗ trợ của Claude.</p>
+        <div className="t-body-medium text-on-surface-variant">
+          <p className="t-title-small text-on-surface mb-0.5">Moody</p>
+          <p>Được phát triển bởi <span className="font-medium text-on-surface">minhtrong67</span>, với sự hỗ trợ của Claude.</p>
         </div>
       </div>
     </div>
@@ -259,30 +236,21 @@ export default function Settings() {
 function SettingGroup({ title, children }) {
   return (
     <div className="mb-8">
-      <p className="text-sm font-medium mb-3">{title}</p>
+      <p className="t-title-small text-primary mb-3 px-1">{title}</p>
       {children}
     </div>
   )
 }
 
+// List item của M3: icon dẫn đầu + nhãn + Switch phía cuối.
 function ToggleRow({ icon: Icon, label, active, onToggle, children }) {
   return (
-    <div className="border border-line rounded-card p-3.5 bg-line/25">
-      <button onClick={onToggle} className="w-full flex items-center gap-3">
-        <span className="w-9 h-9 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0">
-          <Icon size={16} strokeWidth={2} />
-        </span>
-        <span className="flex-1 text-left text-sm">{label}</span>
-        <span
-          className="w-11 h-6 rounded-full flex items-center px-0.5 shrink-0 transition-colors"
-          style={{ background: active ? 'rgb(var(--c-accent))' : 'rgb(var(--c-line))' }}
-        >
-          <span
-            className="w-5 h-5 rounded-full bg-white shadow transition-transform"
-            style={{ transform: active ? 'translateX(20px)' : 'translateX(0)' }}
-          />
-        </span>
-      </button>
+    <div className="px-4 py-3 border-b border-outline-variant/60 last:border-b-0">
+      <div className="flex items-center gap-4 min-h-[40px]">
+        <Icon size={24} className="text-on-surface-variant shrink-0" />
+        <span className="flex-1 t-body-large">{label}</span>
+        <Switch checked={active} onChange={onToggle} label={label} />
+      </div>
       {children}
     </div>
   )

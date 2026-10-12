@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, ListChecks, BarChart3, Settings as SettingsIcon, Plus, ArrowUp, Menu, Sun, Moon, Monitor } from 'lucide-react'
+import {
+  Home, HomeFilled, HistoryIcon, HistoryFilled, BarChart3, BarChartFilled, Settings, Plus, ArrowUp,
+  Menu, Sun, Moon, Monitor
+} from './icons'
+import { MdSettings } from 'react-icons/md'
 import Sidebar from './Sidebar'
 import { getStoredTheme, setTheme } from '../lib/theme'
 
@@ -28,29 +32,24 @@ function ThemeToggle() {
 
   const { icon: Icon, label } = THEME_META[theme]
   return (
-    <button
-      onClick={cycle}
-      aria-label={label}
-      title={label}
-      className="w-9 h-9 rounded-full bg-line/25 text-ink flex items-center justify-center shrink-0 active:scale-90 transition-transform"
-    >
-      <Icon key={theme} size={17} strokeWidth={2} className="pop-in" />
+    <button onClick={cycle} aria-label={label} title={label} className="icon-btn state text-on-surface-variant">
+      <Icon key={theme} size={24} className="pop-in" />
     </button>
   )
 }
 
-const LEFT_TABS = [
-  { to: '/', label: 'Hôm nay', icon: Home, end: true },
-  { to: '/history', label: 'Lịch sử', icon: ListChecks }
-]
-const RIGHT_TABS = [
-  { to: '/stats', label: 'Thống kê', icon: BarChart3 },
-  { to: '/settings', label: 'Cài đặt', icon: SettingsIcon }
+// Navigation bar: tối đa 5 đích đến; icon đặc khi đang chọn.
+const TABS = [
+  { to: '/', label: 'Hôm nay', icon: Home, activeIcon: HomeFilled, end: true },
+  { to: '/history', label: 'Lịch sử', icon: HistoryIcon, activeIcon: HistoryFilled },
+  { to: '/stats', label: 'Thống kê', icon: BarChart3, activeIcon: BarChartFilled },
+  { to: '/settings', label: 'Cài đặt', icon: Settings, activeIcon: MdSettings }
 ]
 
 export default function AppShell() {
   const navigate = useNavigate()
   const mainRef = useRef(null)
+  const [scrolled, setScrolled] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -59,6 +58,7 @@ export default function AppShell() {
     if (!el) return
     function onScroll() {
       setShowScrollTop(el.scrollTop > 400)
+      setScrolled(el.scrollTop > 2)
     }
     el.addEventListener('scroll', onScroll)
     return () => el.removeEventListener('scroll', onScroll)
@@ -69,79 +69,85 @@ export default function AppShell() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-paper text-ink" style={{ paddingTop: 'var(--safe-top)' }}>
+    <div className="min-h-screen flex flex-col bg-surface text-on-surface" style={{ paddingTop: 'var(--safe-top)' }}>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-paper/95 backdrop-blur border-b border-line">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Mở menu"
-          className="w-9 h-9 rounded-full bg-line/25 text-ink flex items-center justify-center shrink-0 active:scale-90 transition-transform"
-        >
-          <Menu size={18} strokeWidth={2} />
+      {/* Top app bar (small) — đổi sang surface-container + elevation khi nội dung cuộn dưới nó */}
+      <header
+        className={`sticky top-0 z-10 flex items-center h-16 gap-1 px-1 transition-[background-color,box-shadow] duration-200 ${
+          scrolled ? 'bg-surface-container shadow-elev-2' : 'bg-surface'
+        }`}
+        style={{ top: 'var(--safe-top)' }}
+      >
+        <button onClick={() => setSidebarOpen(true)} aria-label="Mở menu" className="icon-btn state text-on-surface">
+          <Menu size={24} />
         </button>
-        <img src="/icons/icon-192.png" alt="" className="w-7 h-7 rounded-lg" />
-        <span className="font-display text-base flex-1">Moody</span>
+        <img src="/icons/icon-192.png" alt="" className="w-8 h-8 rounded-m3-sm ml-1" />
+        <span className="t-title-large flex-1 ml-2">Moody</span>
         <ThemeToggle />
       </header>
 
-      <main ref={mainRef} className="flex-1 overflow-y-auto pb-28 relative">
+      <main ref={mainRef} className="flex-1 overflow-y-auto relative" style={{ paddingBottom: 'calc(var(--safe-bottom) + 6rem)' }}>
         <Outlet />
       </main>
 
+      {/* FAB nhỏ: lên đầu trang, xếp ngay trên FAB chính */}
       <button
         onClick={scrollToTop}
         aria-label="Lên đầu trang"
-        className={`fixed right-4 z-20 w-10 h-10 rounded-full bg-surface border border-line shadow-md flex items-center justify-center active:scale-95 transition-all ${
-          showScrollTop ? 'opacity-100 translate-y-0 pop-in' : 'opacity-0 translate-y-2 pointer-events-none'
+        className={`state fixed right-4 z-20 w-10 h-10 rounded-m3-md bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-all duration-200 ${
+          showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
         }`}
-        style={{ bottom: 'calc(var(--safe-bottom) + 6.5rem)' }}
+        style={{ bottom: 'calc(var(--safe-bottom) + 10.5rem)' }}
       >
-        <ArrowUp size={18} className="text-ink" strokeWidth={2.2} />
+        <ArrowUp size={24} />
       </button>
 
-      <nav
-        className="fixed bottom-0 left-0 right-0 bg-paper/95 backdrop-blur border-t border-line grid items-center z-20"
-        style={{
-          paddingBottom: 'calc(var(--safe-bottom) + 0.5rem)',
-          paddingTop: '0.5rem',
-          gridTemplateColumns: '1fr 1fr 4.25rem 1fr 1fr'
-        }}
-      >
-        {LEFT_TABS.map((tab) => (
-          <NavTab key={tab.to} {...tab} />
-        ))}
-        <div aria-hidden="true" />
-        {RIGHT_TABS.map((tab) => (
-          <NavTab key={tab.to} {...tab} />
-        ))}
-      </nav>
-
+      {/* FAB chính (container primary-container, bo 16dp) */}
       <button
         onClick={() => navigate('/checkin')}
         aria-label="Check-in mới"
-        className="fixed left-1/2 -translate-x-1/2 z-30 w-16 h-16 rounded-full bg-primary text-oncolor flex items-center justify-center shadow-lg active:scale-90 transition-transform hover:scale-105"
-        style={{ bottom: 'calc(var(--safe-bottom) + 1.6rem)' }}
+        className="state fixed right-4 z-30 w-14 h-14 rounded-m3-lg bg-primary-container text-on-primary-container shadow-elev-3 hover:shadow-elev-4 flex items-center justify-center transition-shadow"
+        style={{ bottom: 'calc(var(--safe-bottom) + 6rem)' }}
       >
-        <Plus size={28} strokeWidth={2.2} />
+        <Plus size={24} />
       </button>
+
+      {/* Navigation bar */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-20 bg-surface-container grid grid-cols-4"
+        style={{ paddingBottom: 'var(--safe-bottom)' }}
+      >
+        {TABS.map((tab) => (
+          <NavTab key={tab.to} {...tab} />
+        ))}
+      </nav>
     </div>
   )
 }
 
-function NavTab({ to, label, icon: Icon, end }) {
+function NavTab({ to, label, icon: Icon, activeIcon: ActiveIcon, end }) {
   return (
-    <NavLink to={to} end={end} className="flex flex-col items-center justify-center py-1">
-      {({ isActive }) => (
-        <span
-          className={`flex flex-col items-center justify-center gap-1 w-full px-1 py-1.5 rounded-2xl text-[10px] leading-none whitespace-nowrap transition-colors ${
-            isActive ? 'text-accent font-medium bg-accent/10' : 'text-inkmuted'
-          }`}
-        >
-          <Icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
-          <span>{label}</span>
-        </span>
-      )}
+    <NavLink to={to} end={end} className="flex flex-col items-center pt-3 pb-4 gap-1 group">
+      {({ isActive }) => {
+        const I = isActive ? ActiveIcon : Icon
+        return (
+          <>
+            <span
+              className={`state relative flex items-center justify-center h-8 rounded-full transition-all duration-300 ease-emphasized ${
+                isActive
+                  ? 'w-16 bg-secondary-container text-on-secondary-container'
+                  : 'w-16 bg-transparent text-on-surface-variant group-hover:bg-on-surface/[0.08]'
+              }`}
+            >
+              <I size={24} />
+            </span>
+            <span className={`t-label-medium ${isActive ? 'text-on-surface font-bold' : 'text-on-surface-variant'}`}>
+              {label}
+            </span>
+          </>
+        )
+      }}
     </NavLink>
   )
 }

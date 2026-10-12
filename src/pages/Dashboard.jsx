@@ -8,7 +8,7 @@ import {
   TrendingUp,
   CalendarCheck2,
   ChevronRight,
-} from "lucide-react";
+} from "../components/icons";
 import { useAuth } from "../context/AuthContext";
 import { useMoodEntries } from "../hooks/useMoodEntries";
 import { useActivities } from "../hooks/useActivities";
@@ -70,25 +70,16 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-lg mx-auto page-enter">
-      <div className="relative overflow-hidden bg-accent/10 px-4 pt-6 pb-7 mb-6 rounded-b-[1.5rem]">
-        <div
-          className="absolute -top-10 -right-16 w-48 h-48 rounded-full blur-2xl opacity-40 pointer-events-none"
-          style={{ background: "rgb(var(--c-accent))" }}
-        />
-        <div
-          className="absolute -bottom-16 -left-10 w-40 h-40 rounded-full blur-2xl opacity-30 pointer-events-none"
-          style={{ background: "#F0A34E" }}
-        />
-
-        <div className="relative flex items-start justify-between mb-5">
+      <div className="px-4 pt-2 pb-6">
+        <div className="flex items-start justify-between mb-5">
           <div>
-            <p className="text-inkmuted text-sm mb-1">
+            <p className="t-body-large text-on-surface-variant mb-1">
               {greeting}
               {user?.displayName
                 ? `, ${user.displayName.split(" ").pop()}`
                 : ""}
             </p>
-            <h1 className="font-display text-2xl leading-snug">
+            <h1 className="t-headline-medium">
               Hôm nay bạn
               <br />
               cảm thấy thế nào?
@@ -98,11 +89,11 @@ export default function Dashboard() {
             <button
               onClick={logout}
               title="Đăng xuất"
-              className="shrink-0 ml-3 p-0.5 rounded-full bg-surface/70 backdrop-blur"
+              className="state shrink-0 ml-3 rounded-full"
             >
               <img
                 src={user.photoURL}
-                alt=""
+                alt="Đăng xuất"
                 className="w-10 h-10 rounded-full"
               />
             </button>
@@ -112,47 +103,46 @@ export default function Dashboard() {
         {loading ? (
           <TodayCardSkeleton />
         ) : todayEntry ? (
-          <div className="relative border border-line rounded-card p-4 flex items-center gap-4 bg-surface">
+          <div className="relative bg-primary-container text-on-primary-container rounded-m3-xl p-5 flex items-center gap-4">
             <span
-              className="w-14 h-14 rounded-full flex items-center justify-center text-3xl shrink-0"
-              style={{ background: moodByKey(todayEntry.mood)?.color + "26" }}
+              className="w-14 h-14 rounded-full flex items-center justify-center text-3xl shrink-0 bg-surface/60"
             >
               {moodByKey(todayEntry.mood)?.emoji}
             </span>
             <div className="flex-1 min-w-0">
-              <p className="font-medium">
+              <p className="t-title-medium">
                 Đã check-in: {moodByKey(todayEntry.mood)?.label}
               </p>
               {todayEntry.note && (
-                <p className="text-sm text-inkmuted mt-0.5 line-clamp-2">
+                <p className="t-body-medium opacity-80 mt-0.5 line-clamp-2">
                   {todayEntry.note}
                 </p>
               )}
             </div>
             <Link
               to={`/checkin/${todayEntry.id}`}
-              className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0"
+              className="icon-btn state bg-surface/60 text-on-primary-container"
               aria-label="Sửa check-in"
             >
-              <Pencil size={16} strokeWidth={2} />
+              <Pencil size={20} />
             </Link>
           </div>
         ) : (
-          <Link
-            to="/checkin"
-            className="relative flex items-center gap-4 bg-primary text-oncolor rounded-card px-5 py-4 active:scale-[0.98] transition-transform shadow-md"
-          >
-            <span className="w-11 h-11 rounded-full bg-oncolor/25 flex items-center justify-center shrink-0">
-              <NotebookPen size={20} />
-            </span>
-            <span className="flex-1">
-              <span className="block font-medium">Check-in ngay</span>
-              <span className="block text-xs text-oncolor/70">
-                Chỉ mất vài giây
+          <div className="bg-primary-container text-on-primary-container rounded-m3-xl p-5">
+            <div className="flex items-center gap-4 mb-5">
+              <span className="w-12 h-12 rounded-full bg-surface/60 flex items-center justify-center shrink-0">
+                <NotebookPen size={24} />
               </span>
-            </span>
-            <ArrowRight size={20} />
-          </Link>
+              <div>
+                <p className="t-title-medium">Bạn chưa check-in hôm nay</p>
+                <p className="t-body-medium opacity-80">Chỉ mất vài giây</p>
+              </div>
+            </div>
+            <Link to="/checkin" className="btn btn-filled state">
+              Check-in ngay
+              <ArrowRight size={18} />
+            </Link>
+          </div>
         )}
       </div>
 
@@ -161,7 +151,7 @@ export default function Dashboard() {
           <DashboardBodySkeleton />
         ) : (
           <>
-        <div className="grid grid-cols-3 gap-3 mb-9">
+        <div className="grid grid-cols-3 gap-3 mb-8">
           <Stat
             icon={Flame}
             label="Chuỗi ngày"
@@ -182,9 +172,9 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="mb-9">
-          <p className="text-sm font-medium mb-3">Tuần này</p>
-          <div className="flex justify-between">
+        <div className="mb-8">
+          <p className="t-title-medium mb-3">Tuần này</p>
+          <div className="card-filled px-3 py-4 flex justify-between">
             {week.map((d, i) => {
               const entry = byDate[d];
               const m = entry ? moodByKey(entry.mood) : null;
@@ -192,20 +182,20 @@ export default function Dashboard() {
               return (
                 <div key={d} className="flex flex-col items-center gap-1.5">
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-base border-2"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-base"
                     style={{
                       background: m
-                        ? m.color + "30"
-                        : "rgb(var(--c-line) / 0.35)",
-                      borderColor: isToday
-                        ? "rgb(var(--c-accent))"
-                        : "transparent",
+                        ? m.color + "40"
+                        : "rgb(var(--md-surface-container-low))",
+                      boxShadow: isToday
+                        ? "0 0 0 2px rgb(var(--md-primary))"
+                        : "none",
                     }}
                   >
                     {m ? m.emoji : ""}
                   </div>
                   <span
-                    className={`text-[11px] ${isToday ? "text-ink font-medium" : "text-inkmuted"}`}
+                    className={`t-label-medium ${isToday ? "text-primary" : "text-on-surface-variant"}`}
                   >
                     {WEEKDAY_LABELS[i]}
                   </span>
@@ -217,13 +207,10 @@ export default function Dashboard() {
 
         {recent.length > 0 && (
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium">Check-in gần đây</p>
-              <Link
-                to="/history"
-                className="flex items-center text-xs text-accent"
-              >
-                Xem tất cả <ChevronRight size={14} />
+            <div className="flex items-center justify-between mb-2">
+              <p className="t-title-medium">Check-in gần đây</p>
+              <Link to="/history" className="btn btn-text state -mr-3">
+                Xem tất cả
               </Link>
             </div>
             <div className="space-y-2">
@@ -233,31 +220,31 @@ export default function Dashboard() {
                   <Link
                     key={e.id}
                     to={`/checkin/${e.id}`}
-                    className="flex items-center gap-3 border border-line rounded-card px-3.5 py-3 bg-surface"
+                    className="state flex items-center gap-4 card-filled px-4 py-3"
                   >
                     <span
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-lg shrink-0"
-                      style={{ background: m.color + "26" }}
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"
+                      style={{ background: m.color + "40" }}
                     >
                       {m.emoji}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {m.label} · {relativeDateLabel(e.date)}
+                      <p className="t-body-large truncate">
+                        {m.label}
                       </p>
-                      {(e.note || e.activities?.length > 0) && (
-                        <p className="text-xs text-inkmuted truncate mt-0.5">
-                          {e.note ||
-                            e.activities
-                              .map((id) => activityById[id]?.emoji)
-                              .filter(Boolean)
-                              .join(" ")}
-                        </p>
-                      )}
+                      <p className="t-body-medium text-on-surface-variant truncate">
+                        {relativeDateLabel(e.date)}
+                        {(e.note || e.activities?.length > 0) && " · "}
+                        {e.note ||
+                          (e.activities || [])
+                            .map((id) => activityById[id]?.emoji)
+                            .filter(Boolean)
+                            .join(" ")}
+                      </p>
                     </div>
                     <ChevronRight
-                      size={16}
-                      className="text-inkmuted shrink-0"
+                      size={24}
+                      className="text-on-surface-variant shrink-0"
                     />
                   </Link>
                 );
@@ -274,19 +261,16 @@ export default function Dashboard() {
 
 function Stat({ icon: Icon, label, value, color }) {
   return (
-    <div
-      className="rounded-card px-2 py-3.5 flex flex-col items-center text-center gap-2 border"
-      style={{ background: color + "14", borderColor: color + "40" }}
-    >
+    <div className="card-filled px-2 py-4 flex flex-col items-center text-center gap-2">
       <span
-        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-        style={{ background: color + "30", color }}
+        className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+        style={{ background: color + "33", color }}
       >
-        <Icon size={16} strokeWidth={2.2} />
+        <Icon size={24} />
       </span>
       <div>
-        <p className="font-display text-base leading-none">{value}</p>
-        <p className="text-inkmuted text-[10px] mt-1">{label}</p>
+        <p className="t-title-large leading-none">{value}</p>
+        <p className="t-label-small text-on-surface-variant mt-1.5">{label}</p>
       </div>
     </div>
   );

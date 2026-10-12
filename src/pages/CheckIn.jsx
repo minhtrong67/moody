@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Check, Settings2, Clock3, ArrowUp, Loader2 } from 'lucide-react'
+import { ArrowLeft, Plus, Check, Settings2, Clock3, ArrowUp, Loader2 } from '../components/icons'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useActivities } from '../hooks/useActivities'
 import { useMoods } from '../hooks/useMoods'
@@ -8,6 +8,7 @@ import { useToast } from '../context/ToastContext'
 import { todayISO } from '../lib/dateUtils'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PageSkeleton from '../components/PageSkeleton'
+import TextField from '../components/TextField'
 
 function toDatetimeLocalValue(date) {
   const pad = (n) => String(n).padStart(2, '0')
@@ -110,7 +111,7 @@ export default function CheckIn() {
   if (dataLoading) return <PageSkeleton variant="form" />
 
   return (
-    <div className="px-4 pt-6 pb-28 max-w-lg mx-auto page-enter">
+    <div className="max-w-lg mx-auto page-enter pb-28">
       <ConfirmDialog
         open={confirmSaveOpen}
         title="Cập nhật check-in này?"
@@ -120,125 +121,116 @@ export default function CheckIn() {
         onCancel={() => setConfirmSaveOpen(false)}
       />
 
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-inkmuted bg-line/30 rounded-full pl-2.5 pr-3.5 py-1.5 mb-5 active:scale-95 transition-transform"
-      >
-        <ArrowLeft size={15} strokeWidth={2.2} />
-        Quay lại
-      </button>
+      {/* Top app bar: nút quay lại + tiêu đề */}
+      <header className="sticky top-0 z-10 bg-surface flex items-center h-16 gap-1 px-1" style={{ paddingTop: 'var(--safe-top)' }}>
+        <button onClick={() => navigate(-1)} aria-label="Quay lại" className="icon-btn state text-on-surface">
+          <ArrowLeft size={24} />
+        </button>
+        <h1 className="t-title-large ml-1">{existing ? 'Sửa check-in' : 'Check-in'}</h1>
+      </header>
 
-      <h1 className="font-display text-2xl mb-1">{existing ? 'Sửa check-in' : 'Check-in'}</h1>
-      <p className="text-inkmuted text-sm mb-5">Chọn tâm trạng chính của bạn</p>
+      <div className="px-4 pt-2">
+        <p className="t-body-large text-on-surface-variant mb-6">Chọn tâm trạng chính của bạn</p>
 
-      <label className="flex items-center gap-2.5 border border-line rounded-lg px-3.5 py-2.5 mb-6">
-        <span className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0">
-          <Clock3 size={14} strokeWidth={2} />
-        </span>
-        <input
+        <TextField
+          label="Ngày & giờ"
           type="datetime-local"
+          alwaysFloat
           value={datetime}
           onChange={(e) => setDatetime(e.target.value)}
-          className="flex-1 bg-transparent text-sm focus:outline-none min-w-0"
+          className="mb-8"
         />
-      </label>
 
-      <div className="flex justify-between mb-8">
-        {moods.map((m) => (
-          <button
-            key={m.key}
-            onClick={() => setMood(m.key)}
-            className="flex flex-col items-center gap-2"
-          >
-            <span
-              className="w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2 transition-transform active:scale-95"
-              style={{
-                borderColor: mood === m.key ? m.color : 'rgb(var(--c-line))',
-                background: mood === m.key ? m.color + '33' : m.color + '14',
-                transform: mood === m.key ? 'scale(1.08)' : 'scale(1)'
-              }}
-            >
-              {m.emoji}
-            </span>
-            <span className="text-[11px] text-inkmuted">{m.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="mb-7">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-medium">Hoạt động trong ngày</p>
-          <Link
-            to="/manage/activities"
-            className="flex items-center gap-1.5 text-xs bg-line/25 text-inkmuted rounded-full pl-2 pr-3 py-1.5 active:scale-95 transition-transform"
-          >
-            <Settings2 size={12} strokeWidth={2.2} />
-            Quản lý
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-5 gap-x-2 gap-y-4">
-          {activities.map((a) => {
-            const active = selectedActivities.includes(a.id)
+        <div className="flex justify-between mb-9">
+          {moods.map((m) => {
+            const selected = mood === m.key
             return (
-              <div key={a.id} className="flex flex-col items-center gap-1.5">
-                <button
-                  onClick={() => toggleActivity(a.id)}
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-xl border transition-all active:scale-90"
+              <button
+                key={m.key}
+                onClick={() => setMood(m.key)}
+                aria-pressed={selected}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <span
+                  className="state w-14 h-14 rounded-full flex items-center justify-center text-2xl transition-all duration-200 ease-emphasized"
                   style={{
-                    borderColor: active ? 'rgb(var(--c-accent))' : 'rgb(var(--c-line))',
-                    background: active ? 'rgb(var(--c-accent) / 0.85)' : 'rgb(var(--c-line) / 0.25)'
+                    background: selected ? m.color + '66' : 'rgb(var(--md-surface-container-highest))',
+                    boxShadow: selected ? `0 0 0 2px ${m.color}` : 'none',
+                    transform: selected ? 'scale(1.1)' : 'scale(1)'
                   }}
                 >
-                  {a.emoji}
-                </button>
-                <span className="text-[10px] text-inkmuted text-center leading-tight line-clamp-1">{a.label}</span>
-              </div>
+                  {m.emoji}
+                </span>
+                <span className={`t-label-medium ${selected ? 'text-on-surface' : 'text-on-surface-variant'}`}>{m.label}</span>
+              </button>
             )
           })}
-
-          <Link to="/manage/activities" className="flex flex-col items-center gap-1.5">
-            <span
-              aria-label="Thêm hoạt động"
-              className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed border-accent/50 text-accent bg-accent/5 transition-transform active:scale-90"
-            >
-              <Plus size={18} strokeWidth={2.4} />
-            </span>
-            <span className="text-[10px] text-accent text-center leading-tight">Thêm mới</span>
-          </Link>
         </div>
-      </div>
 
-      <div className="mb-8">
-        <p className="text-sm font-medium mb-3">Ghi chú nhanh</p>
-        <textarea
-          ref={noteRef}
-          value={note}
-          onChange={(e) => { setNote(e.target.value); autoResize(e) }}
-          placeholder="Chuyện gì đã xảy ra hôm nay?"
-          rows={2}
-          className="w-full border border-line rounded-lg px-4 py-3 text-sm resize-none bg-transparent focus:outline-none focus:border-accent overflow-hidden"
-        />
-      </div>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <p className="t-title-medium">Hoạt động trong ngày</p>
+            <Link to="/manage/activities" className="btn btn-text state -mr-3">
+              <Settings2 size={18} />
+              Quản lý
+            </Link>
+          </div>
 
-      <button
-        onClick={handleSave}
-        disabled={!mood || saving}
-        className="w-full bg-primary text-oncolor rounded-lg py-3.5 font-medium disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-      >
-        {saving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} strokeWidth={2.2} />}
-        {saving ? 'Đang lưu…' : existing ? 'Cập nhật' : 'Lưu check-in'}
-      </button>
+          {/* Filter chips */}
+          <div className="flex flex-wrap gap-2">
+            {activities.map((a) => {
+              const active = selectedActivities.includes(a.id)
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => toggleActivity(a.id)}
+                  aria-pressed={active}
+                  className={`chip state ${active ? 'chip-selected' : ''}`}
+                >
+                  {active ? <Check size={18} className="-ml-1" /> : <span className="-ml-0.5">{a.emoji}</span>}
+                  {a.label}
+                </button>
+              )
+            })}
+
+            <Link to="/manage/activities" className="chip state text-primary">
+              <Plus size={18} className="-ml-1" />
+              Thêm mới
+            </Link>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <TextField
+            as="textarea"
+            ref={noteRef}
+            label="Ghi chú nhanh"
+            value={note}
+            onChange={(e) => { setNote(e.target.value); autoResize(e) }}
+            placeholder="Chuyện gì đã xảy ra hôm nay?"
+            rows={2}
+          />
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={!mood || saving}
+          className="btn btn-filled btn-lg btn-block state"
+        >
+          {saving ? <Loader2 size={18} /> : <Check size={18} />}
+          {saving ? 'Đang lưu…' : existing ? 'Cập nhật' : 'Lưu check-in'}
+        </button>
+      </div>
 
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label="Lên đầu trang"
-        className={`fixed right-4 z-20 w-10 h-10 rounded-full bg-surface border border-line shadow-md flex items-center justify-center active:scale-95 transition-all ${
-          showScrollTop ? 'opacity-100 translate-y-0 pop-in' : 'opacity-0 translate-y-2 pointer-events-none'
+        className={`state fixed right-4 z-20 w-10 h-10 rounded-m3-md bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-all duration-200 ${
+          showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
         }`}
         style={{ bottom: 'calc(var(--safe-bottom) + 1.5rem)' }}
       >
-        <ArrowUp size={18} className="text-ink" strokeWidth={2.2} />
+        <ArrowUp size={24} />
       </button>
     </div>
   )
