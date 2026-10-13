@@ -29,10 +29,9 @@ export function ToastProvider({ children }) {
       {children}
       {/* Snackbar của Material Design 3: nền inverse-surface, bo 4dp, nằm phía trên navigation bar */}
       <div
-        className={`fixed left-4 right-4 z-[60] flex justify-center transition-all duration-300 ease-emphasized ${
+        className={`fixed left-4 right-4 z-[60] flex justify-center transition-[opacity,transform] duration-300 ease-emphasized bottom-[calc(var(--safe-bottom)+6rem)] md:bottom-6 ${
           toast ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
         }`}
-        style={{ bottom: "calc(var(--safe-bottom) + 6rem)" }}
         role="status"
         aria-live="polite"
       >

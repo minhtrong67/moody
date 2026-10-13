@@ -4,7 +4,7 @@ import {
   MdOutlineHome, MdHome, MdOutlineChecklist, MdOutlineBarChart, MdOutlineSettings,
   MdAdd, MdArrowUpward, MdArrowDownward, MdArrowBack, MdArrowForward, MdMenu,
   MdLightMode, MdDarkMode, MdSettingsBrightness, MdClose, MdCheck, MdWarningAmber,
-  MdHelpOutline, MdNotificationsNone, MdDateRange, MdShowChart, MdCalendarMonth,
+  MdHelpOutline, MdTranslate, MdPalette, MdCalendarMonth,
   MdEventAvailable, MdExpandMore, MdChevronLeft, MdChevronRight, MdSchedule,
   MdFileDownload, MdPictureAsPdf, MdImage, MdLocalFireDepartment, MdFavoriteBorder,
   MdFormatListBulleted, MdPlaylistAdd, MdLogout, MdEditNote, MdEdit, MdRestartAlt,
@@ -41,9 +41,8 @@ export const X = wrap(MdClose)
 export const Check = wrap(MdCheck)
 export const AlertTriangle = wrap(MdWarningAmber)
 export const HelpCircle = wrap(MdHelpOutline)
-export const Bell = wrap(MdNotificationsNone)
-export const CalendarRange = wrap(MdDateRange)
-export const LineChart = wrap(MdShowChart)
+export const Languages = wrap(MdTranslate)
+export const Palette = wrap(MdPalette)
 export const Calendar = wrap(MdCalendarMonth)
 export const CalendarCheck2 = wrap(MdEventAvailable)
 export const ChevronDown = wrap(MdExpandMore)

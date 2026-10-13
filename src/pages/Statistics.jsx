@@ -6,50 +6,40 @@ import {
 import { ChevronLeft, ChevronRight, FileDown, Image as ImageIcon, Loader2, Smile, CalendarCheck2, Flame, Heart } from '../components/icons'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useActivities } from '../hooks/useActivities'
-import { useIsDark } from '../hooks/useIsDark'
+import { useThemeColors } from '../hooks/useIsDark'
 import { useMoods } from '../hooks/useMoods'
+import { useI18n } from '../i18n'
 import { calcStreak } from '../lib/dateUtils'
 import { latestByDate, periodLabel, buildTimeSeries, moodDistribution, getBuckets } from '../lib/statsUtils'
 import { exportStatsPdf, exportStatsImage } from '../lib/reportGenerator'
 import { StatsBodySkeleton } from '../components/PageSkeleton'
 import SegmentedButton from '../components/SegmentedButton'
 
-const PERIODS = [
-  { key: 'day', label: 'Ngày', word: 'ngày' },
-  { key: 'week', label: 'Tuần', word: 'tuần' },
-  { key: 'month', label: 'Tháng', word: 'tháng' },
-  { key: 'year', label: 'Năm', word: 'năm' }
-]
-
-// Màu literal (không dùng CSS var) để đảm bảo hiển thị đúng trong SVG của Recharts ở cả 2 theme.
-const THEME = {
-  light: { ink: '#191C20', muted: '#44474E', line: '#C4C6D0', surface: '#E7E8EE', accent: '#415F91' },
-  dark: { ink: '#E2E2E9', muted: '#C4C6D0', line: '#44474E', surface: '#282A2F', accent: '#AAC7FF' }
-}
+const PERIODS = ['day', 'week', 'month', 'year']
 
 export default function Statistics() {
   const { entries, loading: entriesLoading } = useMoodEntries()
   const { activities, loading: activitiesLoading } = useActivities()
   const { moods, moodByKey, loading: moodsLoading } = useMoods()
+  const i18n = useI18n()
+  const { t } = i18n
   const loading = entriesLoading || activitiesLoading || moodsLoading
   const [period, setPeriod] = useState('month')
   const [cursor, setCursor] = useState(new Date())
   const [exporting, setExporting] = useState(null)
-  const isDark = useIsDark()
-  const c = isDark ? THEME.dark : THEME.light
+  // Màu literal (không dùng CSS var) để SVG của Recharts hiển thị đúng ở mọi theme / màu chủ đề.
+  const c = useThemeColors()
 
   const byDate = useMemo(() => latestByDate(entries), [entries])
   const activityById = useMemo(() => Object.fromEntries(activities.map((a) => [a.id, a])), [activities])
 
-  const timeSeries = useMemo(() => buildTimeSeries(period, cursor, byDate), [period, cursor, byDate])
-  const periodEntries = useMemo(() => getBuckets(period, cursor, byDate).entries, [period, cursor, byDate])
+  const timeSeries = useMemo(() => buildTimeSeries(period, cursor, byDate, i18n), [period, cursor, byDate, i18n])
+  const periodEntries = useMemo(() => getBuckets(period, cursor, byDate, i18n).entries, [period, cursor, byDate, i18n])
   const distribution = useMemo(() => moodDistribution(periodEntries, moods), [periodEntries, moods])
 
   const activityStats = useMemo(() => {
     const counts = {}
-    for (const e of periodEntries) {
-      for (const id of e.activities || []) counts[id] = (counts[id] || 0) + 1
-    }
+    for (const e of periodEntries) for (const id of e.activities || []) counts[id] = (counts[id] || 0) + 1
     return Object.entries(counts)
       .map(([id, count]) => ({ id, count, label: activityById[id]?.label || '—', emoji: activityById[id]?.emoji || '❔' }))
       .sort((a, b) => b.count - a.count)
@@ -62,16 +52,11 @@ export default function Statistics() {
     const counts = {}
     for (const e of list) counts[e.mood] = (counts[e.mood] || 0) + 1
     const topKey = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0]
-    return {
-      avg,
-      checkinDays: list.length,
-      streak: calcStreak(byDate),
-      topMood: topKey ? moodByKey(topKey) : null
-    }
+    return { avg, checkinDays: list.length, streak: calcStreak(byDate), topMood: topKey ? moodByKey(topKey) : null }
   }, [periodEntries, byDate, moodByKey])
 
-  const label = periodLabel(period, cursor)
-  const periodMeta = PERIODS.find((p) => p.key === period)
+  const label = periodLabel(period, cursor, i18n)
+  const periodOptions = PERIODS.map((k) => ({ key: k, label: t(`stats.period.${k}`) }))
 
   function shiftCursor(dir) {
     const d = new Date(cursor)
@@ -82,25 +67,17 @@ export default function Statistics() {
     setCursor(d)
   }
 
-  async function handleExportPdf() {
-    setExporting('pdf')
+  async function runExport(kind) {
+    setExporting(kind)
     try {
-      await exportStatsPdf({ periodLabel: label, stats, distribution, timeSeries })
+      const args = { periodLabel: label, stats, distribution, timeSeries, activityStats, i18n }
+      await (kind === 'pdf' ? exportStatsPdf(args) : exportStatsImage(args))
     } finally {
       setExporting(null)
     }
   }
 
-  async function handleExportImage() {
-    setExporting('image')
-    try {
-      await exportStatsImage({ periodLabel: label, stats, distribution, timeSeries })
-    } finally {
-      setExporting(null)
-    }
-  }
-
-  const hasData = timeSeries.some((t) => t.count > 0)
+  const hasData = timeSeries.some((p) => p.count > 0)
   const tickStyle = { fontSize: 10, fill: c.muted }
   const tooltipStyle = { fontSize: 12, borderRadius: 4, border: 'none', boxShadow: '0 1px 3px rgb(0 0 0 / .3)', background: c.surface, color: c.ink }
   const legendStyle = { fontSize: 11, color: c.ink }
@@ -128,167 +105,139 @@ export default function Statistics() {
     )
   }
 
+  const tooltipProps = { contentStyle: tooltipStyle, labelStyle: { color: c.ink }, itemStyle: { color: c.ink } }
+
   return (
-    <div className="px-4 pt-2 pb-8 max-w-lg mx-auto page-enter">
-      <h1 className="t-headline-medium mb-5">Thống kê</h1>
+    <div className="page page-enter pb-4">
+      <h1 className="t-headline-medium mb-5 pt-2">{t('stats.title')}</h1>
 
-      <SegmentedButton className="mb-4" options={PERIODS} value={period} onChange={setPeriod} />
+      <div className="md:flex md:items-center md:justify-between md:gap-6 mb-2">
+        <SegmentedButton className="mb-4 md:mb-0 md:max-w-md" options={periodOptions} value={period} onChange={setPeriod} />
 
-      <div className="flex items-center justify-between mb-5">
-        <button onClick={() => shiftCursor(-1)} aria-label="Kỳ trước" className="icon-btn state">
-          <ChevronLeft size={24} />
-        </button>
-        <p className="t-title-medium">{label}</p>
-        <button onClick={() => shiftCursor(1)} aria-label="Kỳ sau" className="icon-btn state">
-          <ChevronRight size={24} />
-        </button>
+        <div className="flex items-center justify-between md:justify-center md:gap-4 mb-5 md:mb-0 md:min-w-[18rem]">
+          <button onClick={() => shiftCursor(-1)} aria-label={t('stats.prev')} className="icon-btn state"><ChevronLeft size={24} /></button>
+          <p className="t-title-medium text-center capitalize">{label}</p>
+          <button onClick={() => shiftCursor(1)} aria-label={t('stats.next')} className="icon-btn state"><ChevronRight size={24} /></button>
+        </div>
       </div>
 
-      <p className="t-body-small text-on-surface-variant mb-2 px-1">Xuất báo cáo theo {periodMeta.word}</p>
-      <div className="grid grid-cols-2 gap-3 mb-8">
-        <button
-          onClick={handleExportPdf}
-          disabled={!!exporting || !hasData}
-          className="btn btn-filled state"
-        >
-          {exporting === 'pdf' ? <Loader2 size={18} /> : <FileDown size={18} />}
-          {exporting === 'pdf' ? 'Đang tạo…' : 'PDF'}
-        </button>
-        <button
-          onClick={handleExportImage}
-          disabled={!!exporting || !hasData}
-          className="btn btn-tonal state"
-        >
-          {exporting === 'image' ? <Loader2 size={18} /> : <ImageIcon size={18} />}
-          {exporting === 'image' ? 'Đang tạo…' : 'Ảnh (PNG)'}
-        </button>
+      <div className="md:flex md:items-center md:gap-4 mb-8 md:mt-4">
+        <p className="t-body-small text-on-surface-variant mb-2 md:mb-0 px-1">{t('stats.export', { period: t(`stats.word.${period}`) })}</p>
+        <div className="grid grid-cols-2 gap-3 md:flex">
+          <button onClick={() => runExport('pdf')} disabled={!!exporting || !hasData} className="btn btn-filled state">
+            {exporting === 'pdf' ? <Loader2 size={18} /> : <FileDown size={18} />}
+            {exporting === 'pdf' ? t('stats.creating') : 'PDF'}
+          </button>
+          <button onClick={() => runExport('image')} disabled={!!exporting || !hasData} className="btn btn-tonal state">
+            {exporting === 'image' ? <Loader2 size={18} /> : <ImageIcon size={18} />}
+            {exporting === 'image' ? t('stats.creating') : t('stats.png')}
+          </button>
+        </div>
       </div>
 
       {loading ? (
         <StatsBodySkeleton />
       ) : (
-      <>
-      <div className="space-y-2 mb-8">
-        <StatRow icon={Smile} label="Mood trung bình" value={stats.avg != null ? `${stats.avg.toFixed(1)}/5` : '—'} color="#8FBF7F" />
-        <StatRow icon={CalendarCheck2} label="Ngày đã check-in" value={stats.checkinDays} color="#9FB8C8" />
-        <StatRow icon={Flame} label="Chuỗi hiện tại" value={stats.streak} color="#F0A34E" />
-        <StatRow icon={Heart} label="Cảm xúc phổ biến" value={stats.topMood?.label || '—'} emoji={stats.topMood?.emoji} color={stats.topMood?.color || '#7D8CB0'} />
-      </div>
-
-      {!hasData ? (
-        <p className="t-body-medium text-on-surface-variant text-center py-10">Chưa có dữ liệu trong khoảng thời gian này.</p>
-      ) : (
         <>
-          <p className="t-title-medium mb-2 px-1">Xu hướng mood ({label})</p>
-          <div className="w-full aspect-[4/3] max-h-64 mb-8 card-filled p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
-                <XAxis dataKey="label" tick={tickStyle} interval={period === 'month' ? 2 : 0} />
-                <YAxis domain={[0, 5]} tick={tickStyle} width={28} />
-                <Tooltip
-                  formatter={(v) => [v != null ? `${v}/5` : 'Không có', 'Mood']}
-                  contentStyle={tooltipStyle}
-                  labelStyle={{ color: c.ink }}
-                  itemStyle={{ color: c.ink }}
-                />
-                <Legend wrapperStyle={legendStyle} />
-                <Bar dataKey="avg" name="Mood trung bình" radius={[4, 4, 0, 0]} fill={c.accent} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="space-y-2 mb-8 md:space-y-0 md:grid md:grid-cols-2 2xl:grid-cols-4 md:gap-3">
+            <StatRow icon={Smile} label={t('stats.avgMood')} value={stats.avg != null ? `${stats.avg.toFixed(1)}/5` : '—'} color="#8FBF7F" />
+            <StatRow icon={CalendarCheck2} label={t('stats.checkinDays')} value={stats.checkinDays} color="#9FB8C8" />
+            <StatRow icon={Flame} label={t('stats.streak')} value={stats.streak} color="#F0A34E" />
+            <StatRow icon={Heart} label={t('stats.topMood')} value={stats.topMood?.label || '—'} emoji={stats.topMood?.emoji} color={stats.topMood?.color || '#7D8CB0'} />
           </div>
 
-          <p className="t-title-medium mb-2 px-1">Phân bố cảm xúc</p>
-          <div className="w-full aspect-[4/3] max-h-64 card-filled p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={distribution} margin={{ top: 8, right: 8, left: -18, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
-                <XAxis dataKey="emoji" tick={EmojiAxisTick} interval={0} tickLine={false} height={40} />
-                <YAxis allowDecimals={false} tick={tickStyle} width={28} />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  labelStyle={{ color: c.ink }}
-                  itemStyle={{ color: c.ink }}
-                  formatter={(v) => [`${v} lần`, 'Số lần']}
-                />
-                <Bar dataKey="count" name="Số lần" radius={[4, 4, 0, 0]}>
-                  {distribution.map((d) => (
-                    <Cell key={d.key} fill={d.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <LegendList items={distribution} className="mb-8" />
-
-          <p className="t-title-medium mb-2 px-1">Tỉ lệ cảm xúc</p>
-          <div className="w-full aspect-square max-h-72 mb-8 card-filled p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={distribution.filter((d) => d.count > 0)}
-                  dataKey="count"
-                  nameKey="label"
-                  cx="50%"
-                  cy="44%"
-                  outerRadius="65%"
-                  label={pieLabel}
-                  labelLine={{ stroke: c.line }}
-                  style={{ fontSize: 11 }}
-                >
-                  {distribution.filter((d) => d.count > 0).map((d) => (
-                    <Cell key={d.key} fill={d.color} />
-                  ))}
-                </Pie>
-                <Legend verticalAlign="bottom" height={32} wrapperStyle={legendStyle} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: c.ink }} itemStyle={{ color: c.ink }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {activityStats.length > 0 && (
-            <>
-              <p className="t-title-medium mb-2 px-1">Hoạt động thường gặp ({label})</p>
-              <div className="w-full aspect-[4/3] max-h-64 card-filled p-2">
+          {!hasData ? (
+            <p className="t-body-medium text-on-surface-variant text-center py-10">{t('stats.noData')}</p>
+          ) : (
+            <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+              <ChartCard title={`${t('stats.trend')} (${label})`}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={activityStats} margin={{ top: 8, right: 8, left: -18, bottom: 4 }}>
+                  <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
-                    <XAxis dataKey="emoji" tick={EmojiAxisTick} interval={0} tickLine={false} height={40} />
-                    <YAxis allowDecimals={false} tick={tickStyle} width={28} />
-                    <Tooltip
-                      contentStyle={tooltipStyle}
-                      labelStyle={{ color: c.ink }}
-                      itemStyle={{ color: c.ink }}
-                      formatter={(v) => [`${v} lần`, 'Số lần']}
-                    />
-                    <Bar dataKey="count" name="Số lần" radius={[4, 4, 0, 0]} fill="#9FB8C8" />
+                    <XAxis dataKey="label" tick={tickStyle} interval={period === 'month' ? 2 : 0} />
+                    <YAxis domain={[0, 5]} tick={tickStyle} width={30} />
+                    <Tooltip formatter={(v) => [v != null ? `${v}/5` : t('stats.none'), 'Mood']} {...tooltipProps} />
+                    <Legend wrapperStyle={legendStyle} />
+                    <Bar dataKey="avg" name={t('stats.avgMood')} radius={[4, 4, 0, 0]} fill={c.accent} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-              <LegendList items={activityStats} color="#9FB8C8" />
-            </>
+              </ChartCard>
+
+              <ChartCard title={t('stats.distribution')} footer={<LegendList items={distribution} />}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={distribution} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
+                    <XAxis dataKey="emoji" tick={EmojiAxisTick} interval={0} tickLine={false} height={40} />
+                    <YAxis allowDecimals={false} tick={tickStyle} width={30} />
+                    <Tooltip {...tooltipProps} formatter={(v) => [t('stats.times', { n: v }), t('stats.count')]} />
+                    <Bar dataKey="count" name={t('stats.count')} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                      {distribution.map((d) => (<Cell key={d.key} fill={d.color} />))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <ChartCard title={t('stats.share')} square>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={distribution.filter((d) => d.count > 0)}
+                      dataKey="count"
+                      nameKey="label"
+                      cx="50%"
+                      cy="44%"
+                      outerRadius="65%"
+                      label={pieLabel}
+                      labelLine={{ stroke: c.line }}
+                      style={{ fontSize: 11 }}
+                      isAnimationActive={false}
+                    >
+                      {distribution.filter((d) => d.count > 0).map((d) => (<Cell key={d.key} fill={d.color} />))}
+                    </Pie>
+                    <Legend verticalAlign="bottom" height={32} wrapperStyle={legendStyle} />
+                    <Tooltip {...tooltipProps} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              {activityStats.length > 0 && (
+                <ChartCard title={`${t('stats.activities')} (${label})`} footer={<LegendList items={activityStats} color={c.secondary} />}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={activityStats} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
+                      <XAxis dataKey="emoji" tick={EmojiAxisTick} interval={0} tickLine={false} height={40} />
+                      <YAxis allowDecimals={false} tick={tickStyle} width={30} />
+                      <Tooltip {...tooltipProps} formatter={(v) => [t('stats.times', { n: v }), t('stats.count')]} />
+                      <Bar dataKey="count" name={t('stats.count')} radius={[4, 4, 0, 0]} fill={c.secondary} isAnimationActive={false} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+              )}
+            </div>
           )}
         </>
-      )}
-      </>
       )}
     </div>
   )
 }
 
-function LegendList({ items, color, className = '' }) {
+function ChartCard({ title, children, footer, square }) {
+  return (
+    <section className="mb-8">
+      <p className="t-title-medium mb-2 px-1">{title}</p>
+      <div className={`w-full ${square ? 'aspect-square max-h-72' : 'aspect-[4/3] max-h-64'} card-filled p-2`}>{children}</div>
+      {footer}
+    </section>
+  )
+}
+
+function LegendList({ items, color }) {
   const total = items.reduce((a, i) => a + i.count, 0) || 1
   return (
-    <div className={`flex flex-wrap gap-2 mt-3 ${className}`}>
+    <div className="flex flex-wrap gap-2 mt-3">
       {items.map((it) => (
-        <span
-          key={it.key || it.id}
-          className="chip chip-static !h-8 !px-3 !gap-1.5"
-        >
-          <span
-            className="w-2 h-2 rounded-full shrink-0"
-            style={{ background: it.color || color }}
-          />
+        <span key={it.key || it.id} className="chip chip-static !h-8 !px-3 !gap-1.5">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: it.color || color }} />
           {it.emoji} {it.label}
           <span className="text-on-surface-variant">· {it.count} ({Math.round((it.count / total) * 100)}%)</span>
         </span>
@@ -299,11 +248,11 @@ function LegendList({ items, color, className = '' }) {
 
 function StatRow({ icon: Icon, label, value, emoji, color }) {
   return (
-    <div className="card-filled px-4 py-3 flex items-center gap-4">
+    <div className="card-filled px-4 py-3 flex items-center gap-4 min-w-0">
       <span className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-xl" style={{ background: color + '40', color }}>
         {emoji || <Icon size={24} />}
       </span>
-      <p className="t-body-large text-on-surface-variant flex-1">{label}</p>
+      <p className="t-body-large text-on-surface-variant flex-1 min-w-0 truncate">{label}</p>
       <p className="t-title-large leading-none shrink-0">{value}</p>
     </div>
   )

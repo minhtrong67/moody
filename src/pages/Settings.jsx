@@ -1,42 +1,35 @@
-import { useState } from 'react'
-import {
-  Sun, Moon, Monitor, Smartphone, Bell, LineChart, CalendarRange,
-  Download, Trash2, LogOut, Heart, Send, Loader2
-} from '../components/icons'
+import { useEffect, useRef, useState } from 'react'
+import { Sun, Moon, Monitor, Smartphone, Download, Trash2, LogOut, Heart, Check, Palette } from '../components/icons'
 import ConfirmDialog from '../components/ConfirmDialog'
-import Switch from '../components/Switch'
 import SegmentedButton from '../components/SegmentedButton'
-import TextField from '../components/TextField'
 import { todayISO } from '../lib/dateUtils'
 import { useAuth } from '../context/AuthContext'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
-import { getStoredTheme, getStoredFontScale, setTheme, setFontScale } from '../lib/theme'
-import { getNotificationSettings, setNotificationSetting, requestNotificationPermission, sendTestNotification } from '../lib/notifications'
-
-const THEMES = [
-  { key: 'light', label: 'Sáng', icon: Sun },
-  { key: 'dark', label: 'Tối', icon: Moon },
-  { key: 'system', label: 'Hệ thống', icon: Monitor }
-]
+import { useI18n, LANGUAGES } from '../i18n'
+import {
+  getStoredTheme, getStoredFontScale, getStoredSeed, setTheme, setFontScale, setThemeSeed,
+  SEED_PRESETS, DEFAULT_SEED
+} from '../lib/theme'
 
 const FONT_SIZES = [
-  { key: '0.9', label: 'Nhỏ', size: '13px' },
-  { key: '1', label: 'Vừa', size: '15px' },
-  { key: '1.15', label: 'Lớn', size: '18px' }
+  { key: '0.9', size: '13px' },
+  { key: '1', size: '15px' },
+  { key: '1.15', size: '18px' }
 ]
 
 export default function Settings() {
   const { user, logout } = useAuth()
   const { entries, deleteEntry } = useMoodEntries()
   const { canInstall, installed, promptInstall } = useInstallPrompt()
+  const { t, lang, setLang } = useI18n()
   const [theme, setThemeState] = useState(getStoredTheme())
   const [fontScale, setFontScaleState] = useState(getStoredFontScale())
-  const [notif, setNotif] = useState(getNotificationSettings())
-  const [permission, setPermission] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported')
+  const [seed, setSeedState] = useState(getStoredSeed())
   const [confirmClear, setConfirmClear] = useState(false)
-  const [testSending, setTestSending] = useState(false)
-  const [testSent, setTestSent] = useState(false)
+  const debounceRef = useRef(null)
+
+  useEffect(() => () => clearTimeout(debounceRef.current), [])
 
   function handleTheme(value) {
     setThemeState(value)
@@ -48,38 +41,12 @@ export default function Settings() {
     setFontScale(value)
   }
 
-  async function ensurePermission() {
-    if (permission === 'granted') return true
-    const result = await requestNotificationPermission()
-    setPermission(result)
-    return result === 'granted'
-  }
-
-  async function toggleNotif(key, storageKey) {
-    const next = !notif[key]
-    if (next) {
-      const granted = await ensurePermission()
-      if (!granted) return
-    }
-    setNotificationSetting(storageKey, next ? '1' : '0')
-    setNotif((s) => ({ ...s, [key]: next }))
-  }
-
-  async function handleTestNotification() {
-    setTestSending(true)
-    setTestSent(false)
-    const granted = await ensurePermission()
-    if (granted) {
-      await sendTestNotification()
-      setTestSent(true)
-      setTimeout(() => setTestSent(false), 3000)
-    }
-    setTestSending(false)
-  }
-
-  function handleDailyTime(value) {
-    setNotificationSetting('dailyTime', value)
-    setNotif((s) => ({ ...s, dailyTime: value }))
+  // Màu chủ đề: bảng màu M3 được sinh lại từ seed (nạp thư viện lười), lưu để lần sau áp ngay.
+  function handleSeed(hex, { debounce = false } = {}) {
+    setSeedState(hex.toUpperCase())
+    clearTimeout(debounceRef.current)
+    if (debounce) debounceRef.current = setTimeout(() => setThemeSeed(hex), 120)
+    else setThemeSeed(hex)
   }
 
   function exportData() {
@@ -97,136 +64,151 @@ export default function Settings() {
     setConfirmClear(false)
   }
 
+  const isPreset = SEED_PRESETS.some((p) => p.hex.toUpperCase() === seed)
+
   return (
-    <div className="px-4 pt-2 pb-4 max-w-lg mx-auto page-enter">
+    <div className="page page-enter pb-4">
       <ConfirmDialog
         open={confirmClear}
-        title="Xóa toàn bộ dữ liệu?"
-        description={`${entries.length} bản ghi sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa tất cả"
+        title={t('settings.clearTitle')}
+        description={t('settings.clearText', { n: entries.length })}
+        confirmLabel={t('settings.clearConfirm')}
         danger
         onConfirm={clearAll}
         onCancel={() => setConfirmClear(false)}
       />
-      <h1 className="t-headline-medium mb-6">Cài đặt</h1>
+      <h1 className="t-headline-medium mb-6 pt-2">{t('settings.title')}</h1>
 
-      {user && (
-        <div className="flex items-center gap-4 mb-6 card-filled p-4">
-          <img src={user.photoURL} alt="" className="w-12 h-12 rounded-full" />
-          <div className="flex-1 min-w-0">
-            <p className="t-title-medium truncate">{user.displayName}</p>
-            <p className="t-body-medium text-on-surface-variant truncate">{user.email}</p>
+      <div className="lg:grid lg:grid-cols-2 lg:gap-x-10 lg:items-start">
+        <div>
+          {user && (
+            <div className="flex items-center gap-4 mb-6 card-filled p-4">
+              <img src={user.photoURL} alt="" width="48" height="48" className="w-12 h-12 rounded-full" referrerPolicy="no-referrer" />
+              <div className="flex-1 min-w-0">
+                <p className="t-title-medium truncate">{user.displayName}</p>
+                <p className="t-body-medium text-on-surface-variant truncate">{user.email}</p>
+              </div>
+              <button onClick={logout} className="btn btn-text-error state shrink-0">
+                <LogOut size={18} /> {t('common.logout')}
+              </button>
+            </div>
+          )}
+
+          {canInstall && !installed && (
+            <div className="mb-8 bg-primary-container text-on-primary-container rounded-m3-xl p-5 flex items-center gap-4">
+              <span className="w-12 h-12 rounded-full bg-surface/60 flex items-center justify-center shrink-0">
+                <Smartphone size={24} />
+              </span>
+              <div className="flex-1">
+                <p className="t-title-medium">{t('settings.install')}</p>
+                <p className="t-body-medium opacity-80">{t('settings.installText')}</p>
+              </div>
+              <button onClick={promptInstall} className="btn btn-filled state shrink-0">{t('settings.installBtn')}</button>
+            </div>
+          )}
+
+          <SettingGroup title={t('settings.appearance')}>
+            <SegmentedButton
+              value={theme}
+              onChange={handleTheme}
+              options={[
+                { key: 'light', label: t('theme.lightShort'), icon: Sun },
+                { key: 'dark', label: t('theme.darkShort'), icon: Moon },
+                { key: 'system', label: t('theme.systemShort'), icon: Monitor }
+              ]}
+            />
+          </SettingGroup>
+
+          <SettingGroup title={t('settings.themeColor')}>
+            <div className="card-filled p-4">
+              <p className="t-body-medium text-on-surface-variant mb-4">{t('settings.themeColorText')}</p>
+              <div className="flex flex-wrap gap-3" role="radiogroup" aria-label={t('settings.themeColor')}>
+                {SEED_PRESETS.map((p) => {
+                  const selected = seed === p.hex.toUpperCase()
+                  return (
+                    <button
+                      key={p.key}
+                      role="radio"
+                      aria-checked={selected}
+                      aria-label={t(`theme.color.${p.key}`)}
+                      title={t(`theme.color.${p.key}`)}
+                      onClick={() => handleSeed(p.hex)}
+                      className="state w-10 h-10 rounded-full flex items-center justify-center text-white transition-transform duration-200 ease-emphasized active:scale-90"
+                      style={{ background: p.hex, boxShadow: selected ? `0 0 0 3px rgb(var(--md-surface-container-highest)), 0 0 0 5px ${p.hex}` : 'none' }}
+                    >
+                      {selected && <Check size={20} />}
+                    </button>
+                  )
+                })}
+                {/* Màu tùy chọn: hộp chọn màu gốc của trình duyệt */}
+                <label
+                  title={t('settings.customColor')}
+                  className="state relative w-10 h-10 rounded-full flex items-center justify-center cursor-pointer text-on-surface-variant"
+                  style={{
+                    background: !isPreset ? seed : 'conic-gradient(#e8743b, #d9a400, #5bab5b, #00a19b, #769cdf, #8e6fd8, #d86aa8, #e8743b)',
+                    boxShadow: !isPreset ? `0 0 0 3px rgb(var(--md-surface-container-highest)), 0 0 0 5px ${seed}` : 'none'
+                  }}
+                >
+                  {!isPreset ? <Check size={20} className="text-white" /> : <Palette size={20} className="text-white drop-shadow" />}
+                  <input
+                    type="color"
+                    value={seed}
+                    onChange={(e) => handleSeed(e.target.value, { debounce: true })}
+                    aria-label={t('settings.customColor')}
+                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                  />
+                </label>
+              </div>
+              {seed !== DEFAULT_SEED && (
+                <button onClick={() => handleSeed(DEFAULT_SEED)} className="btn btn-text state mt-3 -ml-3">{t('settings.resetColor')}</button>
+              )}
+            </div>
+          </SettingGroup>
+
+          <SettingGroup title={t('settings.language')}>
+            <SegmentedButton value={lang} onChange={setLang} options={LANGUAGES} />
+          </SettingGroup>
+        </div>
+
+        <div>
+          <SettingGroup title={t('settings.fontSize')}>
+            <div className="segmented" role="group">
+              {FONT_SIZES.map((f) => (
+                <button key={f.key} type="button" aria-pressed={fontScale === f.key} onClick={() => handleFontScale(f.key)} className="state">
+                  <span className="font-semibold" style={{ fontSize: f.size }}>A</span>
+                  <span className="t-label-medium">{t(`settings.font.${f.key}`)}</span>
+                </button>
+              ))}
+            </div>
+          </SettingGroup>
+
+          <SettingGroup title={t('settings.data')}>
+            <div className="space-y-2">
+              <button onClick={exportData} className="btn btn-outlined btn-block state justify-start">
+                <Download size={18} />
+                {t('settings.export')}
+              </button>
+              <p className="t-body-small text-on-surface-variant px-1">{t('settings.importHint')}</p>
+              <button
+                onClick={() => setConfirmClear(true)}
+                disabled={entries.length === 0}
+                className="btn btn-error-tonal btn-block state justify-start"
+              >
+                <Trash2 size={18} />
+                {t('settings.clear')}
+              </button>
+            </div>
+          </SettingGroup>
+
+          <div className="card-outlined p-4 flex items-center gap-4">
+            <span className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
+              <Heart size={20} />
+            </span>
+            <div className="t-body-medium text-on-surface-variant">
+              <p className="t-title-small text-on-surface mb-0.5">Moody</p>
+              <p>{t('settings.credit', { author: 'minhtrong67' })}</p>
+            </div>
           </div>
-          <button onClick={logout} className="btn btn-text-error state shrink-0">
-            <LogOut size={18} /> Đăng xuất
-          </button>
-        </div>
-      )}
-
-      {canInstall && !installed && (
-        <div className="mb-8 bg-primary-container text-on-primary-container rounded-m3-xl p-5 flex items-center gap-4">
-          <span className="w-12 h-12 rounded-full bg-surface/60 flex items-center justify-center shrink-0">
-            <Smartphone size={24} />
-          </span>
-          <div className="flex-1">
-            <p className="t-title-medium">Cài đặt ứng dụng</p>
-            <p className="t-body-medium opacity-80">Thêm vào màn hình chính để dùng như app, mở nhanh hơn.</p>
-          </div>
-          <button onClick={promptInstall} className="btn btn-filled state shrink-0">
-            Cài đặt
-          </button>
-        </div>
-      )}
-
-      <SettingGroup title="Giao diện">
-        <SegmentedButton options={THEMES} value={theme} onChange={handleTheme} />
-      </SettingGroup>
-
-      <SettingGroup title="Cỡ chữ">
-        <SegmentedButton options={FONT_SIZES} value={fontScale} onChange={handleFontScale} />
-      </SettingGroup>
-
-      <SettingGroup title="Thông báo">
-        <div className="card-filled overflow-hidden">
-          <ToggleRow
-            icon={Bell}
-            label="Nhắc check-in hằng ngày"
-            active={notif.dailyEnabled}
-            onToggle={() => toggleNotif('dailyEnabled', 'dailyEnabled')}
-          >
-            {notif.dailyEnabled && (
-              <TextField
-                label="Giờ nhắc"
-                type="time"
-                alwaysFloat
-                fieldBg="var(--md-surface-container-highest)"
-                value={notif.dailyTime}
-                onChange={(e) => handleDailyTime(e.target.value)}
-                className="mt-3 w-44"
-              />
-            )}
-          </ToggleRow>
-
-          <ToggleRow
-            icon={LineChart}
-            label="Báo cáo hàng tuần (Thứ 2)"
-            active={notif.weeklyEnabled}
-            onToggle={() => toggleNotif('weeklyEnabled', 'weeklyEnabled')}
-          />
-
-          <ToggleRow
-            icon={CalendarRange}
-            label="Báo cáo hàng tháng"
-            active={notif.monthlyEnabled}
-            onToggle={() => toggleNotif('monthlyEnabled', 'monthlyEnabled')}
-          />
-        </div>
-
-        {permission === 'denied' && (
-          <p className="t-body-small text-error mt-3 px-1">
-            Thông báo đang bị chặn ở trình duyệt. Vào cài đặt trình duyệt để cho phép thông báo cho trang này.
-          </p>
-        )}
-
-        <button
-          onClick={handleTestNotification}
-          disabled={testSending}
-          className="btn btn-tonal btn-block state mt-4"
-        >
-          {testSending ? <Loader2 size={18} /> : <Send size={18} />}
-          {testSending ? 'Đang gửi…' : testSent ? 'Đã gửi — kiểm tra thông báo trên máy' : 'Gửi thử thông báo ngay'}
-        </button>
-
-        <p className="t-body-small text-on-surface-variant mt-3 px-1">
-          Thông báo hoạt động khi Moody đang mở trong trình duyệt/PWA (kể cả chạy nền một lúc). Để nhắc nhở kể cả khi đã tắt hẳn app cần thêm máy chủ đẩy thông báo (push server).
-        </p>
-      </SettingGroup>
-
-      <SettingGroup title="Dữ liệu">
-        <div className="space-y-2">
-          <button onClick={exportData} className="btn btn-outlined btn-block state justify-start">
-            <Download size={18} />
-            Xuất dữ liệu (.json)
-          </button>
-          <p className="t-body-small text-on-surface-variant px-1">Import: chọn file .json đã xuất trước đó để khôi phục (sẽ bổ sung ở bản sau).</p>
-          <button
-            onClick={() => setConfirmClear(true)}
-            disabled={entries.length === 0}
-            className="btn btn-error-tonal btn-block state justify-start"
-          >
-            <Trash2 size={18} />
-            Xóa toàn bộ dữ liệu
-          </button>
-        </div>
-      </SettingGroup>
-
-      <div className="card-outlined p-4 flex items-center gap-4">
-        <span className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
-          <Heart size={20} />
-        </span>
-        <div className="t-body-medium text-on-surface-variant">
-          <p className="t-title-small text-on-surface mb-0.5">Moody</p>
-          <p>Được phát triển bởi <span className="font-medium text-on-surface">minhtrong67</span>, với sự hỗ trợ của Claude.</p>
         </div>
       </div>
     </div>
@@ -235,23 +217,9 @@ export default function Settings() {
 
 function SettingGroup({ title, children }) {
   return (
-    <div className="mb-8">
-      <p className="t-title-small text-primary mb-3 px-1">{title}</p>
+    <section className="mb-8">
+      <h2 className="t-title-small text-primary mb-3 px-1">{title}</h2>
       {children}
-    </div>
-  )
-}
-
-// List item của M3: icon dẫn đầu + nhãn + Switch phía cuối.
-function ToggleRow({ icon: Icon, label, active, onToggle, children }) {
-  return (
-    <div className="px-4 py-3 border-b border-outline-variant/60 last:border-b-0">
-      <div className="flex items-center gap-4 min-h-[40px]">
-        <Icon size={24} className="text-on-surface-variant shrink-0" />
-        <span className="flex-1 t-body-large">{label}</span>
-        <Switch checked={active} onChange={onToggle} label={label} />
-      </div>
-      {children}
-    </div>
+    </section>
   )
 }

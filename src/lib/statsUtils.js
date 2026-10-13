@@ -1,8 +1,6 @@
 import { MOODS } from './moodConfig'
 import { daysInMonth, daysOfWeek, toLocalISODate } from './dateUtils'
 
-const WEEKDAY_LABELS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
-const MONTH_LABELS = ['Th1','Th2','Th3','Th4','Th5','Th6','Th7','Th8','Th9','Th10','Th11','Th12']
 
 // dailyEntries: mảng bản ghi, mỗi ngày lấy bản ghi mới nhất (map theo date -> entry)
 export function latestByDate(entries) {
@@ -11,32 +9,33 @@ export function latestByDate(entries) {
   return map
 }
 
-export function periodLabel(period, cursor) {
+// i18n = { t, locale } lấy từ useI18n()
+export function periodLabel(period, cursor, { t, locale }) {
   const y = cursor.getFullYear()
   const m = cursor.getMonth()
-  if (period === 'day') return cursor.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+  if (period === 'day') return cursor.toLocaleDateString(locale, { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
   if (period === 'week') {
     const week = daysOfWeek(cursor)
     return `${week[0]} → ${week[6]}`
   }
-  if (period === 'month') return `Tháng ${m + 1}/${y}`
-  if (period === 'year') return `Năm ${y}`
+  if (period === 'month') return t('stats.monthLabel', { m: m + 1, y })
+  if (period === 'year') return t('stats.yearLabel', { y })
   return ''
 }
 
 // Trả về { buckets: [{key,label}], entriesInRange: [entry...] }
-export function getBuckets(period, cursor, byDate) {
+export function getBuckets(period, cursor, byDate, { t }) {
   const y = cursor.getFullYear()
   const m = cursor.getMonth()
 
   if (period === 'day') {
     const iso = toLocalISODate(cursor)
-    return { buckets: [{ key: iso, label: 'Hôm nay' }], entries: byDate[iso] ? [byDate[iso]] : [] }
+    return { buckets: [{ key: iso, label: t('common.today') }], entries: byDate[iso] ? [byDate[iso]] : [] }
   }
 
   if (period === 'week') {
     const week = daysOfWeek(cursor)
-    const buckets = week.map((iso, i) => ({ key: iso, label: WEEKDAY_LABELS[i] }))
+    const buckets = week.map((iso, i) => ({ key: iso, label: t('weekdays.short')[i] }))
     const entries = week.map((iso) => byDate[iso]).filter(Boolean)
     return { buckets, entries }
   }
@@ -54,7 +53,7 @@ export function getBuckets(period, cursor, byDate) {
   }
 
   if (period === 'year') {
-    const buckets = MONTH_LABELS.map((label, i) => ({ key: `${y}-${i}`, label }))
+    const buckets = t('months.short').map((label, i) => ({ key: `${y}-${i}`, label }))
     const entries = Object.values(byDate).filter((e) => new Date(e.date).getFullYear() === y)
     return { buckets, entries }
   }
@@ -63,8 +62,8 @@ export function getBuckets(period, cursor, byDate) {
 }
 
 // Dữ liệu cho bar chart theo thời gian: mood trung bình mỗi bucket
-export function buildTimeSeries(period, cursor, byDate) {
-  const { buckets, entries } = getBuckets(period, cursor, byDate)
+export function buildTimeSeries(period, cursor, byDate, i18n) {
+  const { buckets, entries } = getBuckets(period, cursor, byDate, i18n)
 
   if (period === 'year') {
     const y = cursor.getFullYear()

@@ -1,11 +1,11 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { I18nProvider } from './i18n'
 import { ToastProvider } from './context/ToastContext'
 import { MoodEntriesProvider } from './context/MoodEntriesContext'
 import { ActivitiesProvider } from './context/ActivitiesContext'
 import { MoodsProvider } from './context/MoodsContext'
-import { useNotificationScheduler } from './hooks/useNotificationScheduler'
 import AppShell from './components/AppShell'
 import Login from './components/Login'
 import PageSkeleton from './components/PageSkeleton'
@@ -62,7 +62,6 @@ function page(Component, variant) {
 function Gate() {
   const { user, loading } = useAuth()
   const [guest, setGuest] = useState(false)
-  useNotificationScheduler()
 
   useEffect(() => {
     if (user || guest) prefetchPages()
@@ -98,18 +97,20 @@ function Gate() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MoodEntriesProvider>
-        <ActivitiesProvider>
-          <MoodsProvider>
-            <ToastProvider>
-              <HashRouter>
-                <Gate />
-              </HashRouter>
-            </ToastProvider>
-          </MoodsProvider>
-        </ActivitiesProvider>
-      </MoodEntriesProvider>
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <MoodEntriesProvider>
+          <ActivitiesProvider>
+            <MoodsProvider>
+              <ToastProvider>
+                <HashRouter>
+                  <Gate />
+                </HashRouter>
+              </ToastProvider>
+            </MoodsProvider>
+          </ActivitiesProvider>
+        </MoodEntriesProvider>
+      </AuthProvider>
+    </I18nProvider>
   )
 }

@@ -3,11 +3,13 @@ import { Pencil, RotateCcw } from '../components/icons'
 import { useMoods } from '../hooks/useMoods'
 import Dialog, { DialogActions } from '../components/Dialog'
 import TextField from '../components/TextField'
+import { useI18n } from '../i18n'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { ManageListSkeleton } from '../components/PageSkeleton'
 
 export default function ManageMoods() {
   const { moods, loading, updateMood, resetMood, hasOverride } = useMoods()
+  const { t } = useI18n()
   const [editingKey, setEditingKey] = useState(null)
   const [emoji, setEmoji] = useState('')
   const [label, setLabel] = useState('')
@@ -42,40 +44,40 @@ export default function ManageMoods() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-8 max-w-lg mx-auto page-enter">
+    <div className="page page-narrow page-enter pt-2 pb-8">
       <ConfirmDialog
         open={confirmUpdateOpen}
-        title="Cập nhật tâm trạng này?"
-        description="Emoji và tên hiển thị sẽ được thay đổi."
-        confirmLabel="Cập nhật"
+        title={t('manageMoods.updateTitle')}
+        description={t('manage.updateText')}
+        confirmLabel={t('common.update')}
         onConfirm={performUpdate}
         onCancel={() => setConfirmUpdateOpen(false)}
       />
       <ConfirmDialog
         open={!!pendingReset}
-        title="Khôi phục về mặc định?"
-        description="Emoji và tên hiển thị sẽ trở lại giá trị gốc."
-        confirmLabel="Khôi phục"
+        title={t('manageMoods.resetTitle')}
+        description={t('manageMoods.resetText')}
+        confirmLabel={t('manageMoods.reset')}
         danger
         onConfirm={confirmReset}
         onCancel={() => setPendingReset(null)}
       />
 
-      <h1 className="t-headline-medium mb-1">Quản lý tâm trạng</h1>
+      <h1 className="t-headline-medium mb-1">{t('nav.moods')}</h1>
       <p className="t-body-medium text-on-surface-variant mb-6">
-        Đổi emoji và tên hiển thị cho 5 mức tâm trạng. Thang điểm (1–5) và màu sắc dùng cho thống kê được giữ nguyên.
+        {t('manageMoods.intro')}
       </p>
 
-      <Dialog open={!!editingKey} title="Sửa tâm trạng" onClose={closeForm}>
+      <Dialog open={!!editingKey} title={t('manageMoods.edit')} onClose={closeForm}>
         <div className="flex gap-3">
           <TextField
-            label="Emoji"
+            label={t('manage.emoji')}
             value={emoji}
             onChange={(e) => setEmoji(e.target.value.slice(-2))}
             className="w-24 shrink-0 [&_input]:text-center [&_input]:text-xl [&_input]:px-2"
           />
           <TextField
-            label="Tên hiển thị"
+            label={t('manage.displayName')}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             autoFocus
@@ -83,8 +85,8 @@ export default function ManageMoods() {
           />
         </div>
         <DialogActions>
-          <button onClick={closeForm} className="btn btn-text state">Hủy</button>
-          <button onClick={handleSubmit} disabled={!label.trim()} className="btn btn-text state">Cập nhật</button>
+          <button onClick={closeForm} className="btn btn-text state">{t('common.cancel')}</button>
+          <button onClick={handleSubmit} disabled={!label.trim()} className="btn btn-text state">{t('common.update')}</button>
         </DialogActions>
       </Dialog>
 
@@ -99,20 +101,20 @@ export default function ManageMoods() {
             </span>
             <div className="flex-1 min-w-0">
               <p className="t-body-large truncate">{m.label}</p>
-              <p className="t-body-medium text-on-surface-variant">Điểm số: {m.score}/5</p>
+              <p className="t-body-medium text-on-surface-variant">{t('manageMoods.score', { n: m.score })}</p>
             </div>
             <div className="flex items-center shrink-0">
               {hasOverride(m.key) && (
                 <button
                   onClick={() => setPendingReset(m.key)}
-                  aria-label="Khôi phục mặc định"
-                  title="Khôi phục mặc định"
+                  aria-label={t('manageMoods.reset')}
+                  title={t('manageMoods.reset')}
                   className="icon-btn state"
                 >
                   <RotateCcw size={24} />
                 </button>
               )}
-              <button onClick={() => openEdit(m)} aria-label="Sửa" className="icon-btn icon-btn-primary state">
+              <button onClick={() => openEdit(m)} aria-label={t('common.edit')} className="icon-btn icon-btn-primary state">
                 <Pencil size={24} />
               </button>
             </div>

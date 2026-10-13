@@ -9,6 +9,7 @@ import { todayISO } from '../lib/dateUtils'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PageSkeleton from '../components/PageSkeleton'
 import TextField from '../components/TextField'
+import { useI18n } from '../i18n'
 
 function toDatetimeLocalValue(date) {
   const pad = (n) => String(n).padStart(2, '0')
@@ -24,6 +25,7 @@ export default function CheckIn() {
   const { moods, moodByKey, loading: moodsLoading } = useMoods()
   const dataLoading = entriesLoading || activitiesLoading || moodsLoading
   const { showToast } = useToast()
+  const { t } = useI18n()
   const noteRef = useRef(null)
 
   const today = todayISO()
@@ -98,7 +100,7 @@ export default function CheckIn() {
     else await addEntry(payload)
     setSaving(false)
     setConfirmSaveOpen(false)
-    showToast(existing ? 'Đã cập nhật check-in' : 'Đã lưu check-in')
+    showToast(existing ? t('checkin.updated') : t('checkin.saved'))
     navigate(-1)
   }
 
@@ -111,29 +113,29 @@ export default function CheckIn() {
   if (dataLoading) return <PageSkeleton variant="form" />
 
   return (
-    <div className="max-w-lg mx-auto page-enter pb-28">
+    <div className="max-w-lg md:max-w-2xl mx-auto page-enter pb-28 md:pb-12">
       <ConfirmDialog
         open={confirmSaveOpen}
-        title="Cập nhật check-in này?"
-        description="Các thay đổi sẽ được lưu lại."
-        confirmLabel="Cập nhật"
+        title={t('checkin.confirmTitle')}
+        description={t('checkin.confirmText')}
+        confirmLabel={t('common.update')}
         onConfirm={performSave}
         onCancel={() => setConfirmSaveOpen(false)}
       />
 
       {/* Top app bar: nút quay lại + tiêu đề */}
-      <header className="sticky top-0 z-10 bg-surface flex items-center h-16 gap-1 px-1" style={{ paddingTop: 'var(--safe-top)' }}>
-        <button onClick={() => navigate(-1)} aria-label="Quay lại" className="icon-btn state text-on-surface">
+      <header className="sticky top-0 z-10 bg-surface flex items-center h-16 gap-1 px-1 md:px-4" style={{ paddingTop: 'var(--safe-top)' }}>
+        <button onClick={() => navigate(-1)} aria-label={t('common.back')} className="icon-btn state text-on-surface">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="t-title-large ml-1">{existing ? 'Sửa check-in' : 'Check-in'}</h1>
+        <h1 className="t-title-large ml-1">{existing ? t('checkin.editTitle') : t('checkin.title')}</h1>
       </header>
 
-      <div className="px-4 pt-2">
-        <p className="t-body-large text-on-surface-variant mb-6">Chọn tâm trạng chính của bạn</p>
+      <div className="px-4 md:px-8 pt-2">
+        <p className="t-body-large text-on-surface-variant mb-6">{t('checkin.subtitle')}</p>
 
         <TextField
-          label="Ngày & giờ"
+          label={t('checkin.datetime')}
           type="datetime-local"
           alwaysFloat
           value={datetime}
@@ -141,18 +143,19 @@ export default function CheckIn() {
           className="mb-8"
         />
 
-        <div className="flex justify-between mb-9">
+        <div className="flex justify-between md:justify-center md:gap-8 mb-9" role="radiogroup" aria-label={t('checkin.subtitle')}>
           {moods.map((m) => {
             const selected = mood === m.key
             return (
               <button
                 key={m.key}
                 onClick={() => setMood(m.key)}
-                aria-pressed={selected}
+                role="radio"
+                aria-checked={selected}
                 className="flex flex-col items-center gap-2 group"
               >
                 <span
-                  className="state w-14 h-14 rounded-full flex items-center justify-center text-2xl transition-all duration-200 ease-emphasized"
+                  className="state w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl transition-[transform,background-color,box-shadow] duration-200 ease-emphasized"
                   style={{
                     background: selected ? m.color + '66' : 'rgb(var(--md-surface-container-highest))',
                     boxShadow: selected ? `0 0 0 2px ${m.color}` : 'none',
@@ -169,10 +172,10 @@ export default function CheckIn() {
 
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            <p className="t-title-medium">Hoạt động trong ngày</p>
+            <p className="t-title-medium">{t('checkin.activities')}</p>
             <Link to="/manage/activities" className="btn btn-text state -mr-3">
               <Settings2 size={18} />
-              Quản lý
+              {t('checkin.manage')}
             </Link>
           </div>
 
@@ -195,7 +198,7 @@ export default function CheckIn() {
 
             <Link to="/manage/activities" className="chip state text-primary">
               <Plus size={18} className="-ml-1" />
-              Thêm mới
+              {t('checkin.addNew')}
             </Link>
           </div>
         </div>
@@ -204,10 +207,10 @@ export default function CheckIn() {
           <TextField
             as="textarea"
             ref={noteRef}
-            label="Ghi chú nhanh"
+            label={t('checkin.note')}
             value={note}
             onChange={(e) => { setNote(e.target.value); autoResize(e) }}
-            placeholder="Chuyện gì đã xảy ra hôm nay?"
+            placeholder={t('checkin.notePlaceholder')}
             rows={2}
           />
         </div>
@@ -218,13 +221,13 @@ export default function CheckIn() {
           className="btn btn-filled btn-lg btn-block state"
         >
           {saving ? <Loader2 size={18} /> : <Check size={18} />}
-          {saving ? 'Đang lưu…' : existing ? 'Cập nhật' : 'Lưu check-in'}
+          {saving ? t('common.saving') : existing ? t('common.update') : t('checkin.save')}
         </button>
       </div>
 
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        aria-label="Lên đầu trang"
+        aria-label={t('common.scrollTop')}
         className={`state fixed right-4 z-20 w-10 h-10 rounded-m3-md bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-all duration-200 ${
           showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
         }`}

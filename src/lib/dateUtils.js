@@ -14,11 +14,6 @@ export function isoToDate(iso) {
   return new Date(iso + 'T00:00:00')
 }
 
-export function formatDateVi(iso) {
-  const d = isoToDate(iso)
-  return d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
-}
-
 export function startOfWeek(date = new Date()) {
   const d = new Date(date)
   const day = (d.getDay() + 6) % 7 // Monday = 0
@@ -56,12 +51,10 @@ export function calcStreak(entriesByDate) {
   return streak
 }
 
-export function relativeDateLabel(iso) {
-  const today = todayISO()
-  const d = new Date(iso)
-  const t = new Date(today)
-  const diffDays = Math.round((t - d) / 86400000)
-  if (diffDays === 0) return 'Hôm nay'
-  if (diffDays === 1) return 'Hôm qua'
-  return d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' })
+// "Hôm nay" / "Hôm qua" / "T3, 10/10" — `t` và `locale` lấy từ useI18n().
+export function relativeDateLabel(iso, t, locale) {
+  const diffDays = Math.round((isoToDate(todayISO()) - isoToDate(iso)) / 86400000)
+  if (diffDays === 0) return t('common.today')
+  if (diffDays === 1) return t('common.yesterday')
+  return isoToDate(iso).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit' })
 }

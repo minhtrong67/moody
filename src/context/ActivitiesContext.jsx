@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from './AuthContext'
 import { DEFAULT_ACTIVITIES } from '../lib/moodConfig'
+import { useI18n } from '../i18n'
 
 const LOCAL_KEY = 'mood-tracker-activities-state'
 const EMPTY_STATE = { items: [], order: [], overrides: {}, hidden: [] }
@@ -33,6 +34,7 @@ const ActivitiesContext = createContext(null)
 // Nạp một lần ở gốc app để chuyển trang không phải tải lại.
 export function ActivitiesProvider({ children }) {
   const { user } = useAuth()
+  const { t } = useI18n()
   const [state, setState] = useState(() => (user ? EMPTY_STATE : loadLocalState()))
   const [loading, setLoading] = useState(!!user)
 
@@ -61,9 +63,9 @@ export function ActivitiesProvider({ children }) {
   const merged = useMemo(() => {
     const defaults = DEFAULT_ACTIVITIES
       .filter((a) => !state.hidden.includes(a.id))
-      .map((a) => ({ ...a, ...(state.overrides[a.id] || {}) }))
+      .map((a) => ({ ...a, label: t(`activity.${a.id}`), ...(state.overrides[a.id] || {}) }))
     return [...defaults, ...state.items]
-  }, [state])
+  }, [state, t])
 
   const activities = useMemo(() => applyOrder(merged, state.order), [merged, state.order])
 

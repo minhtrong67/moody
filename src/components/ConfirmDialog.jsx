@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, HelpCircle, Loader2 } from './icons'
+import { useI18n } from '../i18n'
 
 // Dialog xác nhận (M3 basic dialog có icon): icon + tiêu đề canh giữa, nút văn bản căn phải.
-export default function ConfirmDialog({ open, title, description, confirmLabel = 'Xác nhận', danger, onConfirm, onCancel }) {
+export default function ConfirmDialog({ open, title, description, confirmLabel, danger, onConfirm, onCancel }) {
+  const { t } = useI18n()
   const [submitting, setSubmitting] = useState(false)
 
   if (!open) return null
@@ -43,7 +45,7 @@ export default function ConfirmDialog({ open, title, description, confirmLabel =
         {description && <p className="t-body-medium text-on-surface-variant mb-6">{description}</p>}
         <div className="flex justify-end gap-2">
           <button onClick={handleCancel} disabled={submitting} className="btn btn-text state">
-            Hủy
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleConfirm}
@@ -51,7 +53,7 @@ export default function ConfirmDialog({ open, title, description, confirmLabel =
             className={`btn state ${danger ? 'btn-text-error' : 'btn-text'}`}
           >
             {submitting && <Loader2 size={16} />}
-            {confirmLabel}
+            {confirmLabel || t('common.confirm')}
           </button>
         </div>
       </div>

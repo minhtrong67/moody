@@ -1,98 +1,112 @@
+<div align="center">
+
+<img src="public/icons/icon-192.png" alt="Moody" width="96" height="96" />
+
 # Moody
 
-Ứng dụng web theo dõi tâm trạng hằng ngày — mobile-first, hỗ trợ cài đặt như PWA. Xây dựng với React, Vite, Tailwind CSS và Firebase (Authentication + Firestore).
+**Nhật ký tâm trạng hằng ngày — Daily mood journal**
 
+Check-in mỗi ngày, nhìn lại xu hướng cảm xúc và xuất báo cáo. Thiết kế theo **Material Design 3**, hỗ trợ **Tiếng Việt / English**, dùng được như một **PWA** trên cả điện thoại lẫn máy tính.
+
+![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646cff?logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-3-38bdf8?logo=tailwindcss&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-10-ffca28?logo=firebase&logoColor=black)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-informational)
 ![License](https://img.shields.io/badge/license-private-lightgrey)
 
-<br/>
+</div>
+
+---
 
 ## Mục lục
 
+- [Giới thiệu](#giới-thiệu)
+- [Ảnh chụp màn hình](#ảnh-chụp-màn-hình)
 - [Tính năng](#tính-năng)
-- [Công nghệ](#công-nghệ)
-- [Bắt đầu nhanh](#bắt-đầu-nhanh)
-- [Cấu hình Firebase](#cấu-hình-firebase)
-- [Scripts](#scripts)
-- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-- [Mô hình dữ liệu](#mô-hình-dữ-liệu)
-- [Hệ thống màu & dark mode](#hệ-thống-màu--dark-mode)
-- [Thông báo (Notifications)](#thông-báo-notifications)
-- [PWA & cài đặt ứng dụng](#pwa--cài-đặt-ứng-dụng)
+- [Cài đặt](#cài-đặt)
+- [Tech stack](#tech-stack)
+- [Development](#development)
 - [Build & triển khai](#build--triển-khai)
-- [Lộ trình](#lộ-trình)
+- [Cấu trúc project](#cấu-trúc-project)
+- [License](#license)
 
-<br/>
+## Giới thiệu
+
+Moody giúp bạn ghi lại tâm trạng chỉ trong vài giây: chọn một trong 5 mức cảm xúc, gắn hoạt động trong ngày và thêm ghi chú. Sau đó xem lại bằng danh sách, lịch tháng và các biểu đồ thống kê, hoặc xuất thành báo cáo PDF/PNG.
+
+- **Dùng ngay không cần tài khoản** — chế độ khách lưu dữ liệu trong `localStorage`; đăng nhập Google để đồng bộ lên Firestore.
+- **Mobile-first, nhưng không chỉ cho mobile** — điện thoại dùng thanh điều hướng dưới; laptop/PC dùng menu cố định bên trái và bố cục nhiều cột.
+- **Cá nhân hóa** — đổi màu chủ đề (toàn bộ bảng màu Material 3 được sinh lại từ màu bạn chọn), sáng/tối, cỡ chữ và ngôn ngữ.
+
+## Ảnh chụp màn hình
+
+| Máy tính — Hôm nay | Máy tính — Thống kê |
+|---|---|
+| ![Hôm nay](screenshots/image01.png) | ![Thống kê](screenshots/image02.png) |
+
+| Máy tính — Lịch sử | Máy tính — Cài đặt (đổi màu chủ đề) |
+|---|---|
+| ![Lịch sử](screenshots/image03.png) | ![Cài đặt](screenshots/image04.png) |
+
+| Điện thoại — Hôm nay | Điện thoại — Check-in | Điện thoại — Thống kê (tối, EN) | Điện thoại — Lịch sử (tối, EN) |
+|---|---|---|---|
+| <img src="screenshots/image05.png" width="200" /> | <img src="screenshots/image06.png" width="200" /> | <img src="screenshots/image07.png" width="200" /> | <img src="screenshots/image08.png" width="200" /> |
 
 ## Tính năng
 
-| Trang | Mô tả |
+| Khu vực | Mô tả |
 |---|---|
-| **Hôm nay** | Bảng chào mừng, trạng thái check-in trong ngày, dải 7 ngày (Thứ 2 → Chủ nhật), chuỗi ngày liên tiếp, mood trung bình tuần, 3 check-in gần nhất |
-| **Check-in** | Chọn ngày & giờ (mặc định hiện tại), chọn 1 trong 5 mức tâm trạng, chọn hoạt động trong ngày (icon emoji), ghi chú nhanh tự giãn dòng, lưu hoặc chỉnh sửa lại bất kỳ lúc nào |
-| **Lịch sử** | 2 chế độ xem — *Danh sách* (tìm kiếm, bộ lọc dạng dropdown theo thời gian/cảm xúc, sắp xếp, **vuốt phải để sửa / vuốt trái để xóa** — thực hiện ngay, có thông báo xác nhận sau khi hoàn tất) và *Lịch* (xem mood theo từng ngày trong tháng, chạm vào ngày trống để tạo check-in ngay cho ngày đó) |
-| **Thống kê** | Chọn khoảng Ngày / Tuần / Tháng / Năm, biểu đồ cột + biểu đồ tròn (xu hướng mood, phân bố cảm xúc, hoạt động thường gặp), xuất báo cáo PDF theo khoảng đang chọn |
-| **Cài đặt** | Giao diện Sáng/Tối/Hệ thống, cỡ chữ, nhắc nhở check-in & báo cáo tuần/tháng, cài đặt ứng dụng (PWA), xuất/xóa dữ liệu |
-| **Quản lý hoạt động** *(sidebar)* | Thêm/sửa/xóa hoạt động (mặc định lẫn tự tạo), **kéo-thả để sắp xếp thứ tự**, vuốt phải/trái để sửa/xóa |
-| **Quản lý tâm trạng** *(sidebar)* | Đổi emoji + tên hiển thị cho 5 mức tâm trạng, khôi phục về mặc định bất kỳ lúc nào |
+| **Hôm nay** | Lời chào, trạng thái check-in, dải 7 ngày, chuỗi ngày liên tiếp, mood trung bình tuần và các check-in gần đây |
+| **Check-in** | Chọn ngày giờ, 1 trong 5 mức tâm trạng, nhiều hoạt động (chip), ghi chú tự giãn dòng; sửa lại bất kỳ lúc nào |
+| **Lịch sử** | Dạng *Danh sách* (tìm kiếm, lọc thời gian/cảm xúc, sắp xếp, vuốt phải để sửa / vuốt trái để xóa) và dạng *Lịch tháng* (chạm ngày trống để tạo check-in) |
+| **Thống kê** | Theo Ngày / Tuần / Tháng / Năm: xu hướng mood, phân bố & tỉ lệ cảm xúc (cột + tròn), hoạt động thường gặp |
+| **Xuất báo cáo** | PDF hoặc ảnh PNG gồm chỉ số tổng quan, xu hướng, phân bố cảm xúc, **biểu đồ tròn tỉ lệ cảm xúc** và **biểu đồ phân bổ hoạt động** |
+| **Quản lý hoạt động** | Thêm / sửa / xóa, kéo-thả hoặc dùng mũi tên để sắp xếp |
+| **Quản lý tâm trạng** | Đổi emoji và tên hiển thị của 5 mức tâm trạng, khôi phục mặc định |
+| **Cài đặt** | Giao diện sáng/tối/hệ thống, **màu chủ đề**, cỡ chữ, **ngôn ngữ (VI/EN)**, cài đặt PWA, xuất/xóa dữ liệu |
 
-Điều hướng chính nằm ở **bottom bar** (mobile-first) với nút check-in nổi ở giữa; **sidebar** (mở qua icon ☰ ở header) chứa đầy đủ điều hướng cộng thêm 2 trang Quản lý.
+Điểm nhấn kỹ thuật:
 
-Ứng dụng hoạt động được ngay cả khi **chưa đăng nhập** (chế độ khách — dữ liệu lưu trong `localStorage`). Khi đăng nhập bằng Google, dữ liệu tự động đồng bộ lên Firestore theo từng tài khoản.
+- **Material Design 3** đầy đủ: color roles, shape, elevation, state layer, top app bar, navigation bar/drawer, FAB, dialog, snackbar, segmented button, switch, chip, outlined text field.
+- **Màu chủ đề tùy chỉnh**: chọn màu gợi ý hoặc bất kỳ màu nào; bảng màu sáng/tối được sinh bằng [`@material/material-color-utilities`](https://github.com/material-foundation/material-color-utilities) và áp dụng trước khi vẽ trang (không bị nháy màu). Màu mặc định là xanh dương (seed `#769CDF`).
+- **Responsive**: điện thoại → tablet → laptop → màn hình lớn.
+- **Hiệu năng**: code-splitting theo trang, tách chunk `react` / `firebase` / `charts`, thư viện PDF chỉ nạp khi xuất báo cáo, skeleton loading đúng hình dạng nội dung.
+- **SEO & chia sẻ**: meta description, canonical, Open Graph, Twitter Card, JSON-LD, `robots.txt`, ảnh xem trước 1200×630.
+- **PWA**: cài đặt như app, hoạt động offline với service worker.
 
-<br/>
+## Cài đặt
 
-## Công nghệ
-
-- **React 18** + **Vite 5** — SPA, dev server nhanh, HMR
-- **Tailwind CSS 3** — theme **Material Design 3** (vai trò màu, shape, elevation) khai báo tại [`tailwind.config.js`](./tailwind.config.js) và [`src/index.css`](./src/index.css)
-- **Firebase** — Authentication (Google Sign-In) + Cloud Firestore
-- **React Router 6** (`HashRouter`) — điều hướng phía client, tương thích tốt khi host tĩnh
-- **Recharts** — biểu đồ cột & tròn trong trang Thống kê
-- **jsPDF + html2canvas** — xuất báo cáo PDF (render HTML → ảnh → PDF, tránh lỗi font tiếng Việt)
-- **react-icons (Material Design icons)** + **Roboto** (`@fontsource/roboto`, tự host, có subset tiếng Việt) — icon & font chuẩn Material; `components/icons.jsx` gom toàn bộ icon dùng trong app
-- **vite-plugin-pwa** — service worker, manifest, khả năng cài đặt như app
-- **Pointer Events API** (native, không thư viện ngoài) — cử chỉ vuốt trong `components/SwipeableRow.jsx`
-
-<br/>
-
-## Bắt đầu nhanh
+Yêu cầu: **Node.js ≥ 18** và npm.
 
 ```bash
-# 1. Cài dependencies
+git clone <repo-url> moody
+cd moody
 npm install
-
-# 2. Điền API key Firebase vào file .env (xem mục bên dưới)
-
-# 3. Chạy dev server
+cp .env.example .env     # rồi điền thông tin Firebase (xem bên dưới)
 npm run dev
 ```
 
-Yêu cầu Node.js ≥ 18.
+Mở `http://localhost:5173`. **Không cấu hình Firebase vẫn chạy được** — ứng dụng dùng chế độ khách (dữ liệu lưu cục bộ).
 
-<br/>
-
-## Cấu hình Firebase
-
-Dự án đã có sẵn file **`.env`** ở thư mục gốc — chỉ cần điền giá trị vào, không cần sửa code.
+### Cấu hình Firebase (tùy chọn)
 
 1. Tạo project tại [Firebase Console](https://console.firebase.google.com).
 2. **Authentication → Sign-in method** → bật **Google**.
-3. **Firestore Database** → tạo database (chế độ Production hoặc Test).
-4. **Project settings → General → Your apps** → tạo Web app, copy từng giá trị vào `.env`:
+3. **Firestore Database** → tạo database.
+4. **Project settings → Your apps** → tạo Web app và copy từng giá trị vào `.env`:
 
-   ```bash
-   VITE_FIREBASE_API_KEY=AIzaSy...
-   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your-project-id
-   VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-   VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456
-   ```
+   | Biến | Ý nghĩa |
+   |---|---|
+   | `VITE_FIREBASE_API_KEY` | API key của Web app |
+   | `VITE_FIREBASE_AUTH_DOMAIN` | `your-project.firebaseapp.com` |
+   | `VITE_FIREBASE_PROJECT_ID` | ID project |
+   | `VITE_FIREBASE_STORAGE_BUCKET` | `your-project.appspot.com` |
+   | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Sender ID |
+   | `VITE_FIREBASE_APP_ID` | App ID |
+   | `VITE_SITE_URL` | URL triển khai (không có `/` cuối) — dùng cho canonical / Open Graph / Twitter Card |
 
-   (`.env.example` là bản mẫu tham khảo cùng cấu trúc.) Sau khi điền, khởi động lại `npm run dev` để Vite nạp biến môi trường mới.
-
-5. Thiết lập **Firestore Security Rules** để mỗi người dùng chỉ đọc/ghi được dữ liệu của chính mình:
+5. Đặt **Firestore Security Rules** để mỗi người chỉ đọc/ghi dữ liệu của mình:
 
    ```
    rules_version = '2';
@@ -105,139 +119,36 @@ Dự án đã có sẵn file **`.env`** ở thư mục gốc — chỉ cần đi
    }
    ```
 
-Không cấu hình Firebase vẫn chạy được app — chỉ là dữ liệu sẽ lưu cục bộ (`localStorage`) thay vì đồng bộ đám mây. `.env` đã được thêm vào `.gitignore`, không lo lộ key khi đưa code lên git.
+`.env` đã nằm trong `.gitignore`.
 
-<br/>
+## Tech stack
 
-## Scripts
+| Mảng | Công nghệ |
+|---|---|
+| UI | React 18, React Router 6 (`HashRouter`) |
+| Build | Vite 5, `vite-plugin-pwa` (Workbox) |
+| Styling | Tailwind CSS 3 + CSS variables theo Material Design 3 |
+| Màu động | `@material/material-color-utilities` |
+| Icon & font | `react-icons` (Material Design icons), Roboto (`@fontsource/roboto`, tự host, có subset tiếng Việt) |
+| Backend | Firebase Authentication (Google) + Cloud Firestore |
+| Biểu đồ | Recharts |
+| Báo cáo | html2canvas + jsPDF (nạp khi cần) |
+| i18n | Bộ dịch nhẹ tự viết (`src/i18n`) — Tiếng Việt & English |
+
+## Development
 
 | Lệnh | Mô tả |
 |---|---|
-| `npm run dev` | Chạy dev server (Vite) |
+| `npm run dev` | Chạy dev server (HMR) |
 | `npm run build` | Build production vào `dist/` |
-| `npm run preview` | Chạy thử bản build production |
+| `npm run preview` | Chạy thử bản build |
 
-<br/>
+Một số điểm cần biết khi phát triển:
 
-## Cấu trúc thư mục
-
-```
-src/
-├── firebase.js                    # Đọc cấu hình Firebase từ biến môi trường (.env)
-├── App.jsx                        # Router gốc + gate đăng nhập/khách
-├── main.jsx                       # Entry point, khởi tạo theme trước khi render
-│
-├── context/
-│   ├── AuthContext.jsx            # Trạng thái đăng nhập Google
-│   ├── MoodEntriesContext.jsx     # Dữ liệu check-in — nạp MỘT LẦN ở gốc app, dùng chung mọi trang
-│   ├── ActivitiesContext.jsx      # Hoạt động (mặc định + tùy chỉnh + thứ tự)
-│   ├── MoodsContext.jsx           # Emoji/tên hiển thị 5 mức mood
-│   └── ToastContext.jsx           # Thông báo nhẹ tự ẩn
-│
-├── hooks/
-│   ├── useMoodEntries.js          # Re-export từ MoodEntriesContext (Firestore, fallback localStorage)
-│   ├── useActivities.js           # Hoạt động mặc định + tùy chỉnh (thêm/sửa/xóa/sắp xếp)
-│   ├── useMoods.js                # Emoji + tên hiển thị của 5 mức mood (có thể tùy chỉnh)
-│   ├── useInstallPrompt.js        # Bắt sự kiện beforeinstallprompt (PWA)
-│   ├── useNotificationScheduler.js# Kiểm tra mỗi phút để bắn thông báo nhắc nhở
-│   └── useIsDark.js                # Theme hiện tại — dùng tô màu chữ trong biểu đồ SVG
-│
-├── lib/
-│   ├── moodConfig.js               # Định nghĩa GỐC: key/score/color 5 mức mood (cố định), hoạt động mặc định
-│   ├── dateUtils.js                # Tiện ích ngày tháng, streak, nhãn tương đối
-│   ├── statsUtils.js               # Gom nhóm dữ liệu theo ngày/tuần/tháng/năm
-│   ├── reportGenerator.js          # Xuất PDF (html2canvas + jsPDF)
-│   ├── notifications.js            # Nhắc check-in / báo cáo tuần / báo cáo tháng
-│   └── theme.js                    # Dark mode + cỡ chữ
-│
-├── components/
-│   ├── Login.jsx                   # Màn hình đăng nhập / chế độ khách
-│   ├── AppShell.jsx                # Top app bar + navigation bar (4 tab) + FAB check-in + scroll-to-top
-│   ├── Sidebar.jsx                 # Drawer menu đầy đủ (mở qua icon ☰ ở header)
-│   ├── Dialog.jsx                  # Dialog form (thêm/sửa) căn giữa, render qua portal
-│   ├── icons.jsx                   # Icon Material (react-icons/md) + spinner
-│   ├── TextField.jsx               # Outlined text field M3 (input/textarea/select)
-│   ├── Switch.jsx                  # Switch M3
-│   ├── SegmentedButton.jsx         # Segmented button M3
-│   ├── PageSkeleton.jsx            # Skeleton hiển thị khi trang đang tải (lazy route)
-│   ├── SwipeableRow.jsx            # Cử tay vuốt trái/phải cho card trong Lịch sử
-│   └── ConfirmDialog.jsx           # Hộp thoại xác nhận dùng lại nhiều nơi
-│
-└── pages/
-    ├── Dashboard.jsx                # "Hôm nay"
-    ├── CheckIn.jsx                  # Check-in mới / chỉnh sửa (có chọn ngày giờ)
-    ├── History.jsx                  # "Lịch sử" — tab Danh sách (vuốt để sửa/xóa) & Lịch
-    ├── Statistics.jsx                # "Thống kê"
-    ├── Settings.jsx                  # "Cài đặt"
-    ├── ManageActivities.jsx          # CRUD + sắp xếp hoạt động (route /manage/activities)
-    └── ManageMoods.jsx               # Sửa emoji/tên 5 mức mood (route /manage/moods)
-```
-
-<br/>
-
-## Mô hình dữ liệu
-
-**MoodEntry** — lưu tại `users/{uid}/entries/{entryId}` (Firestore) hoặc `localStorage` ở chế độ khách:
-
-```
-├── date          "YYYY-MM-DD"     (người dùng chọn được khi check-in, không bắt buộc là hôm nay)
-├── time           ISO timestamp   (kết hợp từ ngày + giờ chọn trong form)
-├── mood            "great" | "good" | "okay" | "sad" | "angry"   (key cố định, nhãn hiển thị có thể đổi)
-├── score           1–5             (cố định theo key, không đổi khi sửa tên/emoji mood)
-├── activities[]    id các hoạt động đã chọn, tham chiếu tới Activity bên dưới
-└── note            string
-```
-
-**Activity** — mặc định khai báo tại `lib/moodConfig.js`; danh sách tùy chỉnh + thứ tự lưu tại `users/{uid}/meta/activities`:
-
-```
-├── id
-├── emoji     nhập tự do từ bàn phím emoji của hệ điều hành
-├── label
-└── custom    true nếu do người dùng tự tạo (chỉ hoạt động custom mới sửa/xóa được — mặc định chỉ sắp xếp được)
-```
-
-**Mood override** — lưu tại `users/{uid}/meta/moods`, dạng `{ overrides: { [key]: { emoji, label } } }`. `key`, `score`, `color` gốc trong `moodConfig.js` không bao giờ đổi, đảm bảo logic thống kê/streak luôn nhất quán dù người dùng đổi tên/emoji hiển thị.
-
-<br/>
-
-## Hệ thống màu & dark mode (Material Design 3)
-
-Giao diện theo **Material Design 3** với bảng màu lấy từ file export của Material Theme Builder (seed `#769CDF`, primary `#415F91`). Toàn bộ *color role* của M3 (`primary`, `on-primary`, `primary-container`, `secondary-container`, `surface`, `surface-container-low…highest`, `on-surface`, `on-surface-variant`, `outline`, `outline-variant`, `error`, `inverse-surface`…) là CSS variable dạng `--md-*` trong [`src/index.css`](./src/index.css), đổi giá trị theo class `.dark` trên `<html>`, và được map thành class Tailwind cùng tên (`bg-primary-container`, `text-on-surface-variant`, `bg-surface-container-high`…).
-
-- **Shape** — `rounded-m3-xs/sm/md/lg/xl` (4 / 8 / 12 / 16 / 28dp); nút, segmented, search bar dạng viên thuốc (`rounded-full`).
-- **Elevation** — `shadow-elev-1…4`; app bar chuyển sang `surface-container` + đổ bóng khi cuộn.
-- **Typography** — thang chữ M3 qua các class `t-headline-*`, `t-title-*`, `t-body-*`, `t-label-*` (font Roboto).
-- **State layer** — class `.state` thêm lớp phủ hover 8% / focus & pressed 10% cho mọi phần tử tương tác.
-- **Component class** dùng lại: `.btn` (`btn-filled`, `btn-tonal`, `btn-outlined`, `btn-text`, `btn-error-tonal`), `.icon-btn`, `.card-filled/elevated/outlined`, `.chip`, `.m3-field` (outlined text field với nhãn nổi — xem `components/TextField.jsx`), `.m3-switch` (`components/Switch.jsx`), `.segmented` (`components/SegmentedButton.jsx`).
-- **Điều hướng** — Top app bar, Navigation bar 4 đích đến (chỉ báo dạng pill), FAB góc phải dưới, modal Navigation drawer.
-- **Phản hồi** — Dialog (bo 28dp, nút văn bản), Snackbar (`ToastContext`), Modal bottom sheet.
-- **Màu mood** (`great → angry`) giữ cố định như dữ liệu, dùng nền trong suốt 25–40% trên các container.
-
-Muốn đổi tông màu chủ đạo: thay bộ giá trị `--md-*` (light + dark) trong `index.css` — có thể sinh bộ mới tại [Material Theme Builder](https://material-foundation.github.io/material-theme-builder/) — cùng hằng số `THEME.light/dark` trong `pages/Statistics.jsx` (biểu đồ dùng màu literal, xem ghi chú bên dưới) và `theme_color` trong `vite.config.js`/`index.html`.
-
-Biểu đồ Recharts dùng màu literal tính từ `useIsDark()` thay vì `var()` trực tiếp trong SVG, vì một số trình duyệt không resolve đúng CSS variable trong thuộc tính SVG.
-
-<br/>
-
-## Thông báo (Notifications)
-
-Trang Cài đặt cho phép bật:
-- **Nhắc check-in hằng ngày** vào giờ tùy chọn
-- **Nhắc xem báo cáo tuần** (mỗi thứ 2)
-- **Nhắc xem báo cáo tháng** (ngày 1 hằng tháng)
-
-Cơ chế dùng Web Notification API thuần (`hooks/useNotificationScheduler.js` kiểm tra mỗi phút) — **chỉ hoạt động khi Moody đang mở trong trình duyệt hoặc PWA**. Để nhắc nhở chạy nền thật sự kể cả khi đã đóng app, cần bổ sung service worker + push server (Firebase Cloud Messaging là lựa chọn phù hợp vì dự án đã dùng Firebase).
-
-<br/>
-
-## PWA & cài đặt ứng dụng
-
-- Icon và manifest khai báo tại [`vite.config.js`](./vite.config.js) (qua `vite-plugin-pwa`) và các file trong [`public/`](./public) (`favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icons/`).
-- Trang Cài đặt hiện thẻ **"Cài đặt ứng dụng"** khi trình duyệt bắn sự kiện `beforeinstallprompt` (Chrome/Edge trên Android & desktop) và app chưa được cài.
-- Safari/iOS không hỗ trợ sự kiện này — người dùng cài thủ công qua **Share → Thêm vào Màn hình chính**.
-
-<br/>
+- **Đổi màu mặc định**: sửa các biến `--md-*` (sáng + tối) trong [`src/index.css`](src/index.css) — có thể xuất bộ mới từ [Material Theme Builder](https://material-foundation.github.io/material-theme-builder/) — cùng `DEFAULT_SEED` trong [`src/lib/theme.js`](src/lib/theme.js), `theme_color` trong `vite.config.js` và icon trong `public/`.
+- **Thêm ngôn ngữ / chuỗi mới**: thêm khóa vào `src/i18n/vi.js` và `src/i18n/en.js`, dùng `const { t } = useI18n()` → `t('khoa')`. Khóa thiếu sẽ rơi về tiếng Việt.
+- **Biểu đồ** dùng màu literal đọc từ CSS variable hiện hành (`readRole()` trong `theme.js`) vì SVG của một số trình duyệt không resolve `var()` ổn định.
+- **Ngày "hôm nay"** luôn tính theo giờ địa phương của thiết bị (không dùng `toISOString()` theo UTC).
 
 ## Build & triển khai
 
@@ -245,37 +156,31 @@ Cơ chế dùng Web Notification API thuần (`hooks/useNotificationScheduler.js
 npm run build
 ```
 
-Deploy thư mục `dist/` lên bất kỳ static host nào (Firebase Hosting, Vercel, Netlify, Cloudflare Pages…). Vì dùng `HashRouter`, không cần cấu hình rewrite rule cho SPA routing.
+Deploy thư mục `dist/` lên bất kỳ static host nào (Firebase Hosting, Vercel, Netlify, Cloudflare Pages…). Vì dùng `HashRouter` nên không cần cấu hình rewrite cho SPA. Nhớ đặt `VITE_SITE_URL` trước khi build để thẻ canonical / Open Graph trỏ đúng domain.
 
-<br/>
+## Cấu trúc project
 
-## Lộ trình
+```
+├── index.html                  # Meta SEO / Open Graph / Twitter / JSON-LD, màn hình khởi động
+├── vite.config.js              # Vite + PWA manifest + tách chunk
+├── tailwind.config.js          # Ánh xạ color roles Material 3, shape, elevation
+├── public/                     # favicon, icon PWA, og-image, robots.txt
+├── screenshots/                # Ảnh dùng trong README (image01 … image08)
+└── src/
+    ├── App.jsx · main.jsx
+    ├── index.css               # Color roles (--md-*), typography, state layer, component class
+    ├── i18n/                   # vi.js · en.js · index.jsx (I18nProvider, useI18n)
+    ├── context/                # Auth, MoodEntries, Activities, Moods, Toast
+    ├── hooks/                  # useMoodEntries, useActivities, useMoods, useInstallPrompt, useIsDark
+    ├── lib/                    # moodConfig, dateUtils, statsUtils, reportGenerator, theme
+    ├── components/             # AppShell, Sidebar, Dialog, ConfirmDialog, TextField, Switch,
+    │                           # SegmentedButton, SwipeableRow, PageSkeleton, icons, Login…
+    └── pages/                  # Dashboard, CheckIn, History, Statistics, Settings,
+                                # ManageActivities, ManageMoods
+```
 
-Đã lên khung, có thể làm thêm ở bản sau:
+**Mô hình dữ liệu** — `users/{uid}/entries/{id}`: `date` (`YYYY-MM-DD`), `time` (ISO), `mood` (`great|good|okay|sad|angry`), `score` (1–5), `activities[]`, `note`. Hoạt động và tên/emoji tâm trạng tùy chỉnh nằm ở `users/{uid}/meta/activities` và `users/{uid}/meta/moods`; ở chế độ khách mọi thứ lưu trong `localStorage`.
 
-- Journal — nhật ký dài kèm tìm kiếm nội dung
-- Goals & Streak — mốc thành tích 7/30/100 ngày
-- Insights tự động (vd. "Mood tuần này cao hơn tuần trước")
-- Import dữ liệu từ file JSON đã xuất
-- Push notification chạy nền thật sự (service worker + push server)
+## License
 
-## Ghi chú hiệu năng
-
-- Dữ liệu (check-in, hoạt động, tâm trạng) được nạp **một lần** ở gốc app qua Context nên chuyển trang không bị tải lại.
-- Các trang được **lazy-load** (code splitting) và **preload khi trình duyệt rảnh**; thư viện PDF (`jspdf`, `html2canvas`) chỉ được nạp khi bấm xuất báo cáo.
-- Hộp thoại xác nhận (`ConfirmDialog`, `z-[80]`) luôn nằm trên mọi dialog/form khác.
-
-## Splash / theme khi mở app (PWA)
-
-Màn hình khởi động (trước khi React mount) được vẽ tĩnh ngay trong `index.html` bằng một đoạn script nhỏ đọc `localStorage.theme` và gắn class `.dark` **trước khi có bất kỳ khung hình nào được vẽ** — nên không còn hiện tượng nháy nền trắng khi mở app ở giao diện tối. `theme-color` (thanh trạng thái/thanh địa chỉ) cũng được đồng bộ mỗi khi đổi theme trong `lib/theme.js`. Màu nền splash do hệ điều hành vẽ khi mở app từ icon (`manifest.background_color`) dùng màu thương hiệu trung tính vì trình duyệt/manifest hiện chưa hỗ trợ khai báo theo theme sáng/tối.
-
-## Skeleton loading
-
-Dữ liệu (check-in, hoạt động, tâm trạng) expose thêm cờ `loading` từ Context. Mỗi trang tự hiển thị skeleton đúng hình dạng nội dung thật (`components/PageSkeleton.jsx`) trong lúc chờ — áp dụng cho Hôm nay, Lịch sử (danh sách & lịch), Thống kê, Check-in, Quản lý hoạt động/tâm trạng — tránh "nhảy layout" khi dữ liệu về.
-
-## Bản vá gần đây
-
-- **Ngày "hôm nay" tính theo giờ địa phương** — trước đây dùng `Date.toISOString()` (giờ UTC) khiến ngày chỉ đổi lúc 7h sáng với múi giờ Việt Nam (UTC+7) thay vì đúng 0h đêm. Đã sửa toàn bộ (`dateUtils.js`, `statsUtils.js`, tên file xuất dữ liệu) để luôn dùng giờ local của thiết bị.
-- **Thông báo (Notifications):** chuyển sang bắn qua Service Worker (`registration.showNotification`) khi có sẵn — nhiều trình duyệt di động (đặc biệt ở chế độ PWA) không hỗ trợ gọi `new Notification()` trực tiếp từ trang và trước đây lỗi này bị nuốt âm thầm. Điều kiện bắn thông báo cũng đổi từ "khớp đúng phút" sang "đã tới hoặc qua giờ hẹn và chưa bắn hôm nay/tuần này/tháng này", vì trình duyệt di động hay tạm dừng bộ đếm giờ khi app chạy nền nên không đảm bảo code chạy đúng vào phút cần thiết. Có thêm nút **"Gửi thử thông báo ngay"** trong Cài đặt để kiểm tra không cần chờ đến giờ hẹn.
-- **Xuất báo cáo bị cắt nội dung:** sau 2 lần thử (toạ độ âm, rồi truyền thêm `windowWidth/windowHeight/x/y/scrollX/scrollY`), nguyên nhân thật sự là các tham số "mẹo" đó khiến html2canvas tính sai kích thước vùng chụp so với nội dung thực tế được layout. Đã quay về cách dùng **mặc định, đơn giản nhất** của html2canvas (phần tử ở toạ độ dương `(0,0)`, chỉ ẩn bằng `z-index: -9999`, không transform/offset/override nào khác) — đây là cách được chính tài liệu html2canvas khuyến nghị. Đồng thời sửa thêm `min-width:0` cho các cột flex trong biểu đồ cột và `table-layout:fixed` cho bảng phân bố cảm xúc để nội dung không tự tràn ra ngoài khung 794px dù có nhiều mục (vd: xem theo Tháng với ~30 ngày).
-- **Thêm xuất báo cáo dạng ảnh (PNG):** trang Thống kê giờ có 2 nút — **PDF** và **Ảnh (PNG)** — dùng chung một bản vẽ báo cáo, chỉ khác bước đóng gói cuối (nhúng vào PDF hay lưu thẳng thành `.png`).
+Dự án **private** — bảo lưu mọi quyền © 2026 minhtrong67. Không sao chép, phân phối hoặc sử dụng lại khi chưa có sự cho phép bằng văn bản. (Nếu muốn mở mã nguồn, thêm file `LICENSE` — ví dụ MIT — và đổi badge ở đầu README.)

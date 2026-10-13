@@ -5,12 +5,14 @@ import { useToast } from '../context/ToastContext'
 import SwipeableRow from '../components/SwipeableRow'
 import Dialog, { DialogActions } from '../components/Dialog'
 import TextField from '../components/TextField'
+import { useI18n } from '../i18n'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { ManageListSkeleton } from '../components/PageSkeleton'
 
 export default function ManageActivities() {
   const { activities, loading, addActivity, updateActivity, removeActivity, reorderActivities } = useActivities()
   const { showToast } = useToast()
+  const { t } = useI18n()
   const [editingId, setEditingId] = useState(null)
   const [formOpen, setFormOpen] = useState(false)
   const [emoji, setEmoji] = useState('')
@@ -55,7 +57,7 @@ export default function ManageActivities() {
 
   async function performUpdate() {
     await updateActivity(editingId, { emoji: emoji.trim() || '✨', label: label.trim() })
-    showToast('Đã cập nhật hoạt động')
+    showToast(t('manageActs.updated'))
     setConfirmUpdateOpen(false)
     closeForm()
   }
@@ -69,7 +71,7 @@ export default function ManageActivities() {
     setSaving(true)
     try {
       await addActivity({ emoji: emoji.trim() || '✨', label: label.trim() })
-      showToast('Đã thêm hoạt động mới')
+      showToast(t('manageActs.added'))
       closeForm()
     } finally {
       setSaving(false)
@@ -79,7 +81,7 @@ export default function ManageActivities() {
   async function confirmDelete() {
     if (!pendingDelete) return
     await removeActivity(pendingDelete.id)
-    showToast('Đã xóa hoạt động')
+    showToast(t('manageActs.deleted'))
     setPendingDelete(null)
   }
 
@@ -139,57 +141,57 @@ export default function ManageActivities() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-8 max-w-lg mx-auto page-enter">
+    <div className="page page-narrow page-enter pt-2 pb-8">
       <ConfirmDialog
         open={confirmUpdateOpen}
-        title="Cập nhật hoạt động này?"
-        description="Emoji và tên hiển thị sẽ được thay đổi."
-        confirmLabel="Cập nhật"
+        title={t('manageActs.updateTitle')}
+        description={t('manage.updateText')}
+        confirmLabel={t('common.update')}
         onConfirm={performUpdate}
         onCancel={() => setConfirmUpdateOpen(false)}
       />
       <ConfirmDialog
         open={!!pendingDelete}
-        title="Xóa hoạt động này?"
-        description="Hành động này không thể hoàn tác."
-        confirmLabel="Xóa"
+        title={t('manageActs.deleteTitle')}
+        description={t('common.irreversible')}
+        confirmLabel={t('common.delete')}
         danger
         onConfirm={confirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
 
-      <h1 className="t-headline-medium mb-1">Quản lý hoạt động</h1>
+      <h1 className="t-headline-medium mb-1">{t('nav.activities')}</h1>
       <p className="t-body-medium text-on-surface-variant mb-6">
-        Kéo biểu tượng <GripVertical size={16} className="inline -mt-0.5" /> hoặc dùng mũi tên để sắp xếp. Vuốt phải để sửa, vuốt trái để xóa.
+        {t('manageActs.intro')}
       </p>
 
       <button onClick={openAdd} className="btn btn-filled btn-lg btn-block state mb-6">
-        <Plus size={18} /> Thêm hoạt động mới
+        <Plus size={18} /> {t('manageActs.add')}
       </button>
 
-      <Dialog open={formOpen} title={editingId ? 'Sửa hoạt động' : 'Hoạt động mới'} onClose={closeForm}>
+      <Dialog open={formOpen} title={editingId ? t('manageActs.edit') : t('manageActs.new')} onClose={closeForm}>
         <div className="flex gap-3">
           <TextField
-            label="Emoji"
+            label={t('manage.emoji')}
             value={emoji}
             onChange={(e) => setEmoji(e.target.value.slice(-2))}
             placeholder="😀"
             className="w-24 shrink-0 [&_input]:text-center [&_input]:text-xl [&_input]:px-2"
           />
           <TextField
-            label="Tên hoạt động"
+            label={t('manageActs.name')}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            placeholder="vd: Đọc sách"
+            placeholder={t('manageActs.example')}
             autoFocus
             className="flex-1"
           />
         </div>
         <DialogActions>
-          <button onClick={closeForm} disabled={saving} className="btn btn-text state">Hủy</button>
+          <button onClick={closeForm} disabled={saving} className="btn btn-text state">{t('common.cancel')}</button>
           <button onClick={handleSubmit} disabled={!label.trim() || saving} className="btn btn-text state">
             {saving && <Loader2 size={16} />}
-            {editingId ? 'Cập nhật' : 'Lưu'}
+            {editingId ? t('common.update') : t('common.save')}
           </button>
         </DialogActions>
       </Dialog>
@@ -210,20 +212,20 @@ export default function ManageActivities() {
                 <span
                   onPointerDown={(e) => handleGripPointerDown(e, i)}
                   className="text-on-surface-variant cursor-grab active:cursor-grabbing shrink-0 touch-none p-1"
-                  aria-label="Kéo để sắp xếp"
+                  aria-label={t('manageActs.drag')}
                 >
                   <GripVertical size={24} />
                 </span>
                 <span className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-xl shrink-0">{a.emoji}</span>
                 <div className="flex-1 min-w-0 pl-1">
                   <p className="t-body-large truncate">{a.label}</p>
-                  <p className="t-body-small text-on-surface-variant">{a.custom ? 'Tự tạo' : 'Mặc định'}</p>
+                  <p className="t-body-small text-on-surface-variant">{a.custom ? t('manageActs.custom') : t('manageActs.default')}</p>
                 </div>
                 <div className="flex items-center shrink-0">
                   <button
                     onClick={() => move(i, -1)}
                     disabled={i === 0}
-                    aria-label="Di chuyển lên"
+                    aria-label={t('manageActs.up')}
                     className="icon-btn state"
                   >
                     <ArrowUp size={24} />
@@ -231,7 +233,7 @@ export default function ManageActivities() {
                   <button
                     onClick={() => move(i, 1)}
                     disabled={i === order.length - 1}
-                    aria-label="Di chuyển xuống"
+                    aria-label={t('manageActs.down')}
                     className="icon-btn state"
                   >
                     <ArrowDown size={24} />

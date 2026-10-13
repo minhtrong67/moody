@@ -91,7 +91,6 @@ body {
   font-family: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
   background: rgb(var(--md-surface));
   color: rgb(var(--md-on-surface));
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 input, textarea, select, button {
@@ -128,6 +127,23 @@ select option {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Khung nội dung responsive: điện thoại → tablet → laptop/PC */
+.page {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  max-width: 32rem;
+}
+@media (min-width: 768px) {
+  .page { padding-inline: 2rem; max-width: 48rem; }
+}
+@media (min-width: 1280px) {
+  .page { max-width: 72rem; }
+}
+.page-narrow { max-width: 32rem; }
+@media (min-width: 768px) { .page-narrow { max-width: 40rem; } }
+@media (min-width: 1280px) { .page-narrow { max-width: 44rem; } }
 
 /* =====================================================================
    Typography scale (M3)
@@ -462,4 +478,10 @@ select option {
   );
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Bỏ qua layout/paint cho phần tử ngoài màn hình (danh sách dài) */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 8.5rem;
 }

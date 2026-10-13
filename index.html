@@ -3,27 +3,85 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- ===== SEO cơ bản ===== -->
+    <title>Moody — Nhật ký tâm trạng hằng ngày</title>
+    <meta name="description" content="Moody là ứng dụng nhật ký tâm trạng: check-in mỗi ngày, theo dõi xu hướng, xem thống kê và xuất báo cáo PDF/PNG. Miễn phí, hỗ trợ cài đặt như app (PWA)." />
+    <meta name="keywords" content="mood tracker, nhật ký tâm trạng, theo dõi cảm xúc, mood journal, daily check-in, sức khỏe tinh thần, mental wellbeing, PWA" />
+    <meta name="author" content="minhtrong67" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="application-name" content="Moody" />
+    <meta name="generator" content="Vite + React" />
+    <link rel="canonical" href="%VITE_SITE_URL%/" />
+    <link rel="alternate" hreflang="vi" href="%VITE_SITE_URL%/" />
+    <link rel="alternate" hreflang="en" href="%VITE_SITE_URL%/" />
+    <link rel="alternate" hreflang="x-default" href="%VITE_SITE_URL%/" />
+
+    <!-- ===== Open Graph (Facebook, Zalo, LinkedIn, Messenger…) ===== -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Moody" />
+    <meta property="og:title" content="Moody — Nhật ký tâm trạng hằng ngày" />
+    <meta property="og:description" content="Check-in tâm trạng mỗi ngày, theo dõi xu hướng và xuất báo cáo. Daily mood journal with trends, statistics and reports." />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
+    <meta property="og:image" content="%VITE_SITE_URL%/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Moody — ứng dụng nhật ký tâm trạng" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- ===== Twitter / X Card ===== -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Moody — Nhật ký tâm trạng hằng ngày" />
+    <meta name="twitter:description" content="Check-in tâm trạng mỗi ngày, theo dõi xu hướng và xuất báo cáo." />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.png" />
+    <meta name="twitter:image:alt" content="Moody — ứng dụng nhật ký tâm trạng" />
+
+    <!-- ===== PWA / thiết bị ===== -->
+    <meta name="theme-color" content="#F9F9FF" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111318" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#F9F9FF" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Moody" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="description" content="Moody — theo dõi tâm trạng mỗi ngày, xem xu hướng và xuất báo cáo." />
-    <title>Moody</title>
+
+    <!-- ===== Dữ liệu có cấu trúc (JSON-LD) cho công cụ tìm kiếm ===== -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Moody",
+        "alternateName": "Moody — Mood journal",
+        "description": "Mood journal app: daily check-ins, trends, statistics and PDF/PNG reports.",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Any",
+        "inLanguage": ["vi", "en"],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Person", "name": "minhtrong67" }
+      }
+    </script>
 
     <!-- Áp theme NGAY khi trang bắt đầu render (trước khi tải CSS/JS) để không bị nháy nền trắng
          khi người dùng đang dùng giao diện tối. Logic phải khớp với src/lib/theme.js. -->
     <script>
       (function () {
         try {
-          var stored = localStorage.getItem('theme') || 'system'
+          var stored = localStorage.getItem('theme')
+          if (stored !== 'light' && stored !== 'dark') stored = 'system'
           var dark = stored === 'dark' || (stored === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          var css = localStorage.getItem('themeCss')
+          if (css) { var st = document.createElement('style'); st.id = 'md-theme-override'; st.textContent = css; document.head.appendChild(st) }
           var root = document.documentElement
           if (dark) root.classList.add('dark')
           var scale = localStorage.getItem('fontScale')
-          if (scale) root.style.setProperty('--font-scale', scale)
+          if (scale === '0.9' || scale === '1' || scale === '1.15') root.style.setProperty('--font-scale', scale)
           var meta = document.querySelector('meta[name="theme-color"]')
           if (meta) meta.setAttribute('content', dark ? '#111318' : '#F9F9FF')
         } catch (e) {}
@@ -32,16 +90,16 @@
 
     <!-- CSS tối thiểu, inline: nền + màn hình khởi động hiển thị đúng theme trước cả khi file CSS chính tải xong. -->
     <style>
-      html { background: #F9F9FF; color-scheme: light; }
-      html.dark { background: #111318; color-scheme: dark; }
+      html { background: rgb(var(--md-surface, 249 249 255)); color-scheme: light; }
+      html.dark { background: rgb(var(--md-surface, 17 19 24)); color-scheme: dark; }
       body { margin: 0; }
       .boot {
         min-height: 100vh; display: flex; flex-direction: column;
         align-items: center; justify-content: center; gap: 18px;
       }
       .boot img { width: 64px; height: 64px; border-radius: 20px; animation: boot-pulse 1.4s ease-in-out infinite; }
-      .boot i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #415F91; margin: 0 3px; animation: boot-bounce 1s infinite ease-in-out both; }
-      html.dark .boot i { background: #AAC7FF; }
+      .boot i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: rgb(var(--md-primary, 65 95 145)); margin: 0 3px; animation: boot-bounce 1s infinite ease-in-out both; }
+      html.dark .boot i { background: rgb(var(--md-primary, 170 199 255)); }
       .boot i:nth-child(1) { animation-delay: -0.3s; }
       .boot i:nth-child(2) { animation-delay: -0.15s; }
       @keyframes boot-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .75; transform: scale(.96); } }
@@ -52,10 +110,11 @@
     <!-- Màn hình khởi động tĩnh: hiện ngay lập tức, React sẽ thay thế khi mount. -->
     <div id="root">
       <div class="boot">
-        <img src="/icons/icon-192.png" alt="" />
+        <img src="/icons/icon-192.png" alt="" width="64" height="64" />
         <div><i></i><i></i><i></i></div>
       </div>
     </div>
+    <noscript>Moody cần bật JavaScript để hoạt động. / Moody requires JavaScript to run.</noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

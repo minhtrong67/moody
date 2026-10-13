@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from './AuthContext'
 import { MOODS } from '../lib/moodConfig'
+import { useI18n } from '../i18n'
 
 const LOCAL_KEY = 'mood-tracker-mood-overrides'
 
@@ -24,6 +25,7 @@ const MoodsContext = createContext(null)
 // `key`, `score`, `color` không đổi được. Nạp một lần ở gốc app.
 export function MoodsProvider({ children }) {
   const { user } = useAuth()
+  const { t } = useI18n()
   const [overrides, setOverrides] = useState(() => (user ? {} : loadLocalOverrides()))
   const [loading, setLoading] = useState(!!user)
 
@@ -49,9 +51,10 @@ export function MoodsProvider({ children }) {
     return unsub
   }, [user])
 
+  // Nhãn mặc định theo ngôn ngữ; nếu người dùng đã tự đổi tên thì giữ tên của họ.
   const moods = useMemo(
-    () => MOODS.map((m) => ({ ...m, ...(overrides[m.key] || {}) })),
-    [overrides]
+    () => MOODS.map((m) => ({ ...m, label: t(`mood.${m.key}`), ...(overrides[m.key] || {}) })),
+    [overrides, t]
   )
 
   const updateMood = useCallback(

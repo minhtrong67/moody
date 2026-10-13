@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+# Đặt VITE_SITE_URL trong .env rồi thêm dòng Sitemap tương ứng nếu bạn tạo sitemap.xml
