@@ -119,15 +119,15 @@ export default function AppShell() {
         </main>
       </div>
 
-      {/* FAB nhỏ: lên đầu trang */}
+      {/* FAB lên đầu trang */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label={t('common.scrollTop')}
-        className={`state fixed right-4 md:right-6 z-20 w-10 h-10 rounded-m3-md bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 bottom-[calc(var(--safe-bottom)+10.5rem)] md:bottom-6 ${
+        className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 bottom-[calc(var(--safe-bottom)+11rem)] md:bottom-6 ${
           showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
         }`}
       >
-        <ArrowUp size={24} />
+        <ArrowUp size={28} />
       </button>
 
       {/* FAB chính (điện thoại). Trên màn hình lớn FAB nằm trong rail / drawer. */}

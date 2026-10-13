@@ -122,9 +122,47 @@ export function ActivitiesProvider({ children }) {
     [persist]
   )
 
+  // Nhập hàng loạt (gộp, không xóa gì): hoạt động mặc định → ghi đè emoji/tên và hiện lại nếu đang ẩn;
+  // hoạt động tùy chỉnh → cập nhật theo id hoặc thêm mới. Thứ tự các dòng trong file được giữ làm thứ tự hiển thị.
+  // items: [{ id|null, isDefault, emoji, label }]. Trả về { added, updated }.
+  const importActivities = useCallback(
+    async (items) => {
+      const overrides = { ...state.overrides }
+      const custom = [...state.items]
+      let hidden = [...state.hidden]
+      const order = []
+      let added = 0
+      let updated = 0
+      for (const it of items) {
+        if (it.isDefault) {
+          overrides[it.id] = { ...(overrides[it.id] || {}), emoji: it.emoji, label: it.label }
+          hidden = hidden.filter((h) => h !== it.id)
+          order.push(it.id)
+          updated++
+          continue
+        }
+        const idx = it.id ? custom.findIndex((a) => a.id === it.id) : -1
+        if (idx >= 0) {
+          custom[idx] = { ...custom[idx], emoji: it.emoji, label: it.label }
+          order.push(it.id)
+          updated++
+        } else {
+          const id = it.id || crypto.randomUUID()
+          custom.push({ id, custom: true, emoji: it.emoji, label: it.label })
+          order.push(id)
+          added++
+        }
+      }
+      const rest = state.order.filter((id) => !order.includes(id))
+      await persist({ overrides, items: custom, hidden, order: [...order, ...rest] })
+      return { added, updated }
+    },
+    [state, persist]
+  )
+
   const value = useMemo(
-    () => ({ activities, loading, addActivity, removeActivity, updateActivity, reorderActivities }),
-    [activities, loading, addActivity, removeActivity, updateActivity, reorderActivities]
+    () => ({ activities, loading, addActivity, removeActivity, updateActivity, reorderActivities, importActivities }),
+    [activities, loading, addActivity, removeActivity, updateActivity, reorderActivities, importActivities]
   )
 
   return <ActivitiesContext.Provider value={value}>{children}</ActivitiesContext.Provider>

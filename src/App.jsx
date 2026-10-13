@@ -1,5 +1,5 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { I18nProvider } from './i18n'
 import { ToastProvider } from './context/ToastContext'
@@ -9,6 +9,7 @@ import { MoodsProvider } from './context/MoodsContext'
 import AppShell from './components/AppShell'
 import Login from './components/Login'
 import PageSkeleton from './components/PageSkeleton'
+import { getStartPage } from './lib/startPage'
 
 const loaders = {
   Dashboard: () => import('./pages/Dashboard'),
@@ -62,6 +63,19 @@ function page(Component, variant) {
 function Gate() {
   const { user, loading } = useAuth()
   const [guest, setGuest] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const startHandled = useRef(false)
+  const ready = !loading && (!!user || guest)
+
+  // Mở app → chuyển tới trang mặc định người dùng đã chọn (chỉ một lần mỗi lần mở app,
+  // và chỉ khi đang ở trang chủ để không đè lên liên kết sâu).
+  useLayoutEffect(() => {
+    if (!ready || startHandled.current) return
+    startHandled.current = true
+    const target = getStartPage()
+    if (target !== '/' && location.pathname === '/') navigate(target, { replace: true })
+  }, [ready, location.pathname, navigate])
 
   useEffect(() => {
     if (user || guest) prefetchPages()

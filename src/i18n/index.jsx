@@ -11,20 +11,40 @@ export const LANGUAGES = [
   { key: 'en', label: 'English' }
 ]
 
-export function detectLang() {
+// Ngôn ngữ của thiết bị: lấy theo thứ tự ưu tiên trong navigator.languages, ngôn ngữ nào app hỗ trợ trước thì dùng.
+export function detectDeviceLang() {
+  const list = (typeof navigator !== 'undefined' && (navigator.languages?.length ? navigator.languages : [navigator.language])) || []
+  for (const l of list) {
+    const code = String(l || '').toLowerCase().slice(0, 2)
+    if (code === 'vi' || code === 'en') return code
+  }
+  return 'en'
+}
+
+// 'auto' (mặc định, theo thiết bị) hoặc lựa chọn cố định 'vi' | 'en'.
+function readLangPref() {
   try {
     const stored = localStorage.getItem(LANG_KEY)
     if (stored === 'vi' || stored === 'en') return stored
   } catch {
     /* ignore */
   }
-  return (navigator.language || 'vi').toLowerCase().startsWith('vi') ? 'vi' : 'en'
+  return 'auto'
 }
 
 const I18nContext = createContext(null)
 
 export function I18nProvider({ children }) {
-  const [lang, setLangState] = useState(detectLang)
+  const [langPref, setLangPref] = useState(readLangPref)
+  const [deviceLang, setDeviceLang] = useState(detectDeviceLang)
+  const lang = langPref === 'auto' ? deviceLang : langPref
+
+  // Người dùng đổi ngôn ngữ thiết bị khi app đang mở → cập nhật theo (chỉ có tác dụng ở chế độ tự động).
+  useEffect(() => {
+    const onChange = () => setDeviceLang(detectDeviceLang())
+    window.addEventListener('languagechange', onChange)
+    return () => window.removeEventListener('languagechange', onChange)
+  }, [])
 
   // Đồng bộ <html lang>, tiêu đề và mô tả trang theo ngôn ngữ (có lợi cho SEO / trình đọc màn hình).
   useEffect(() => {
@@ -37,11 +57,12 @@ export function I18nProvider({ children }) {
 
   const setLang = useCallback((next) => {
     try {
-      localStorage.setItem(LANG_KEY, next)
+      if (next === 'auto') localStorage.removeItem(LANG_KEY)
+      else localStorage.setItem(LANG_KEY, next)
     } catch {
       /* ignore */
     }
-    setLangState(next)
+    setLangPref(next)
   }, [])
 
   const value = useMemo(() => {
@@ -54,8 +75,8 @@ export function I18nProvider({ children }) {
       }
       return str
     }
-    return { t, lang, setLang, locale: LOCALES[lang] }
-  }, [lang, setLang])
+    return { t, lang, langPref, setLang, locale: LOCALES[lang] }
+  }, [lang, langPref, setLang])
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }

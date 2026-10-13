@@ -6,7 +6,7 @@ import {
   MdLightMode, MdDarkMode, MdSettingsBrightness, MdClose, MdCheck, MdWarningAmber,
   MdHelpOutline, MdTranslate, MdPalette, MdCalendarMonth,
   MdEventAvailable, MdExpandMore, MdChevronLeft, MdChevronRight, MdSchedule,
-  MdFileDownload, MdPictureAsPdf, MdImage, MdLocalFireDepartment, MdFavoriteBorder,
+  MdFileDownload, MdFileUpload, MdPictureAsPdf, MdImage, MdLocalFireDepartment, MdFavoriteBorder,
   MdFormatListBulleted, MdPlaylistAdd, MdLogout, MdEditNote, MdEdit, MdRestartAlt,
   MdSearch, MdSend, MdTune, MdSmartphone, MdOutlineSentimentSatisfied,
   MdDeleteOutline, MdTrendingUp, MdDragIndicator, MdOutlineHistory, MdHistory,
@@ -50,6 +50,7 @@ export const ChevronLeft = wrap(MdChevronLeft)
 export const ChevronRight = wrap(MdChevronRight)
 export const Clock3 = wrap(MdSchedule)
 export const Download = wrap(MdFileDownload)
+export const Upload = wrap(MdFileUpload)
 export const FileDown = wrap(MdPictureAsPdf)
 export const Image = wrap(MdImage)
 export const Flame = wrap(MdLocalFireDepartment)
