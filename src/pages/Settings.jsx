@@ -5,15 +5,32 @@ import {
   Monitor,
   Smartphone,
   Download,
-  Trash2,
+  Upload,
   LogOut,
   Heart,
   Check,
   Palette,
 } from "../components/icons";
-import ConfirmDialog from "../components/ConfirmDialog";
 import SegmentedButton from "../components/SegmentedButton";
+import TextField from "../components/TextField";
 import { todayISO } from "../lib/dateUtils";
+import { START_PAGES, getStartPage, setStartPage } from "../lib/startPage";
+import {
+  FORMATS,
+  buildExportBlob,
+  downloadBlob,
+  entriesToRows,
+  activitiesToRows,
+  moodsToRows,
+  parseImportFile,
+  normalizeEntries,
+  normalizeActivities,
+  normalizeMoods,
+} from "../lib/dataTransfer";
+import { DEFAULT_ACTIVITIES } from "../lib/moodConfig";
+import { useToast } from "../context/ToastContext";
+import { useActivities } from "../hooks/useActivities";
+import { useMoods } from "../hooks/useMoods";
 import { useAuth } from "../context/AuthContext";
 import { useMoodEntries } from "../hooks/useMoodEntries";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
@@ -37,13 +54,20 @@ const FONT_SIZES = [
 
 export default function Settings() {
   const { user, logout } = useAuth();
-  const { entries, deleteEntry } = useMoodEntries();
+  const { entries, importEntries } = useMoodEntries();
+  const { activities, importActivities } = useActivities();
+  const { moods, importMoods } = useMoods();
+  const { showToast } = useToast();
   const { canInstall, installed, promptInstall } = useInstallPrompt();
-  const { t, lang, setLang } = useI18n();
+  const { t, langPref, setLang } = useI18n();
   const [theme, setThemeState] = useState(getStoredTheme());
   const [fontScale, setFontScaleState] = useState(getStoredFontScale());
   const [seed, setSeedState] = useState(getStoredSeed());
-  const [confirmClear, setConfirmClear] = useState(false);
+  const [startPage, setStartPageState] = useState(getStartPage());
+  const [format, setFormat] = useState("csv");
+  const [busy, setBusy] = useState(null);
+  const fileRef = useRef(null);
+  const importTarget = useRef(null);
   const debounceRef = useRef(null);
 
   useEffect(() => () => clearTimeout(debounceRef.current), []);
@@ -67,36 +91,83 @@ export default function Settings() {
     else setThemeSeed(hex);
   }
 
-  function exportData() {
-    const blob = new Blob([JSON.stringify(entries, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `moody-data-${todayISO()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  function handleStartPage(path) {
+    setStartPageState(path);
+    setStartPage(path);
   }
 
-  async function clearAll() {
-    await Promise.all(entries.map((e) => deleteEntry(e.id)));
-    setConfirmClear(false);
+  const activityById = Object.fromEntries(activities.map((a) => [a.id, a]));
+
+  async function exportDataset(dataset) {
+    const rows =
+      dataset === "entries"
+        ? entriesToRows(entries, activityById)
+        : dataset === "activities"
+          ? activitiesToRows(activities)
+          : moodsToRows(moods);
+    if (rows.length === 0) return showToast(t("settings.exportEmpty"));
+    setBusy(`export:${dataset}`);
+    try {
+      const blob = await buildExportBlob(format, dataset, rows);
+      const name = `moody-${dataset}-${todayISO()}.${format}`;
+      downloadBlob(blob, name);
+      showToast(t("settings.exported", { name }));
+    } catch {
+      showToast(t("settings.exportFailed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function pickImport(dataset) {
+    importTarget.current = dataset;
+    fileRef.current?.click();
+  }
+
+  async function onFileChosen(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // cho phép chọn lại cùng một file
+    const dataset = importTarget.current;
+    if (!file || !dataset) return;
+    setBusy(`import:${dataset}`);
+    try {
+      const raw = await parseImportFile(file);
+      let parsed;
+      if (dataset === "entries") parsed = normalizeEntries(raw, { moods, activities });
+      else if (dataset === "activities")
+        parsed = normalizeActivities(raw, DEFAULT_ACTIVITIES.map((a) => a.id));
+      else parsed = normalizeMoods(raw, moods.map((m) => m.key));
+      if (parsed.items.length === 0) return showToast(t("settings.importNothing"));
+      let result;
+      try {
+        result =
+          dataset === "entries"
+            ? await importEntries(parsed.items)
+            : dataset === "activities"
+              ? await importActivities(parsed.items)
+              : await importMoods(parsed.items);
+      } catch {
+        return showToast(t("settings.importErr.write"));
+      }
+      showToast(
+        t("settings.importDone", {
+          added: result.added ?? 0,
+          updated: result.updated ?? 0,
+          skipped: parsed.skipped,
+        }),
+      );
+    } catch (err) {
+      const known = ["format", "size", "invalid"].includes(err?.message) ? err.message : "read";
+      showToast(t(`settings.importErr.${known}`));
+    } finally {
+      setBusy(null);
+    }
   }
 
   const isPreset = SEED_PRESETS.some((p) => p.hex.toUpperCase() === seed);
 
   return (
     <div className="page page-enter pb-4">
-      <ConfirmDialog
-        open={confirmClear}
-        title={t("settings.clearTitle")}
-        description={t("settings.clearText", { n: entries.length })}
-        confirmLabel={t("settings.clearConfirm")}
-        danger
-        onConfirm={clearAll}
-        onCancel={() => setConfirmClear(false)}
-      />
       <h1 className="t-headline-medium mb-6 pt-2">{t("settings.title")}</h1>
 
       <div className="lg:grid lg:grid-cols-2 lg:gap-x-10 lg:items-start">
@@ -232,10 +303,34 @@ export default function Settings() {
 
           <SettingGroup title={t("settings.language")}>
             <SegmentedButton
-              value={lang}
+              value={langPref}
               onChange={setLang}
-              options={LANGUAGES}
+              options={[{ key: "auto", label: t("settings.langAuto") }, ...LANGUAGES]}
             />
+            {langPref === "auto" && (
+              <p className="t-body-small text-on-surface-variant px-1 mt-2">
+                {t("settings.langAutoHint")}
+              </p>
+            )}
+          </SettingGroup>
+
+          <SettingGroup title={t("settings.startPage")}>
+            <p className="t-body-medium text-on-surface-variant mb-3 px-1">
+              {t("settings.startPageText")}
+            </p>
+            <TextField
+              as="select"
+              label={t("settings.startPage")}
+              fieldBg="var(--md-surface-container-highest)"
+              value={startPage}
+              onChange={(e) => handleStartPage(e.target.value)}
+            >
+              {START_PAGES.map((p) => (
+                <option key={p.path} value={p.path}>
+                  {t(p.key)}
+                </option>
+              ))}
+            </TextField>
           </SettingGroup>
         </div>
 
@@ -261,26 +356,50 @@ export default function Settings() {
             </div>
           </SettingGroup>
 
-          <SettingGroup title={t("settings.data")}>
+          <SettingGroup title={t("settings.exportImport")}>
+            <p className="t-body-medium text-on-surface-variant mb-3 px-1">
+              {t("settings.dataHint")}
+            </p>
+            <p className="t-label-medium text-on-surface-variant mb-2 px-1">
+              {t("settings.dataFormat")}
+            </p>
+            <SegmentedButton
+              className="mb-4"
+              value={format}
+              onChange={setFormat}
+              options={FORMATS.map((f) => ({ key: f, label: `.${f}` }))}
+            />
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,.xlsx,.json"
+              onChange={onFileChosen}
+              className="hidden"
+            />
             <div className="space-y-2">
-              <button
-                onClick={exportData}
-                className="btn btn-outlined btn-block state justify-center"
-              >
-                <Download size={18} />
-                {t("settings.export")}
-              </button>
-              <p className="t-body-small text-on-surface-variant px-1">
-                {t("settings.importHint")}
-              </p>
-              <button
-                onClick={() => setConfirmClear(true)}
-                disabled={entries.length === 0}
-                className="btn btn-error-tonal btn-block state justify-center"
-              >
-                <Trash2 size={18} />
-                {t("settings.clear")}
-              </button>
+              {["entries", "activities", "moods"].map((ds) => (
+                <div key={ds} className="card-filled p-4">
+                  <p className="t-title-small mb-3">{t(`settings.dataset.${ds}`)}</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => exportDataset(ds)}
+                      disabled={!!busy}
+                      className="btn btn-outlined state flex-1 justify-center"
+                    >
+                      <Download size={18} />
+                      {t("settings.exportBtn")}
+                    </button>
+                    <button
+                      onClick={() => pickImport(ds)}
+                      disabled={!!busy}
+                      className="btn btn-tonal state flex-1 justify-center"
+                    >
+                      <Upload size={18} />
+                      {t("settings.importBtn")}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </SettingGroup>
 

@@ -84,12 +84,28 @@ export function MoodsProvider({ children }) {
     [overrides, user]
   )
 
+  // Nhập hàng loạt emoji + tên của các mức mood. items: [{ key, patch }]. Trả về { updated }.
+  const importMoods = useCallback(
+    async (items) => {
+      const next = { ...overrides }
+      for (const { key, patch } of items) next[key] = { ...(next[key] || {}), ...patch }
+      if (!user) {
+        saveLocalOverrides(next)
+        setOverrides(next)
+      } else {
+        await setDoc(doc(db, 'users', user.uid, 'meta', 'moods'), { overrides: next })
+      }
+      return { updated: items.length }
+    },
+    [overrides, user]
+  )
+
   const moodByKey = useCallback((key) => moods.find((m) => m.key === key), [moods])
   const hasOverride = useCallback((key) => !!overrides[key], [overrides])
 
   const value = useMemo(
-    () => ({ moods, loading, moodByKey, updateMood, resetMood, hasOverride }),
-    [moods, loading, moodByKey, updateMood, resetMood, hasOverride]
+    () => ({ moods, loading, moodByKey, updateMood, resetMood, hasOverride, importMoods }),
+    [moods, loading, moodByKey, updateMood, resetMood, hasOverride, importMoods]
   )
 
   return <MoodsContext.Provider value={value}>{children}</MoodsContext.Provider>

@@ -18,7 +18,7 @@ export default function BottomSheet({ open, title, onClose, children }) {
     <div className="fixed inset-0 z-50 flex items-end justify-center scrim animate-[fadeIn_0.2s_ease_both]" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-surface-container-low rounded-t-m3-xl px-6 pt-3 shadow-elev-3 animate-[sheetUp_0.4s_cubic-bezier(0.05,0.7,0.1,1)_both]"
+        className="w-full max-w-lg max-h-[88dvh] overflow-y-auto overscroll-contain bg-surface-container-low rounded-t-m3-xl px-6 pt-3 shadow-elev-3 animate-[sheetUp_0.4s_cubic-bezier(0.05,0.7,0.1,1)_both]"
         style={{ paddingBottom: 'calc(var(--safe-bottom) + 1.5rem)' }}
       >
         <div className="w-8 h-1 rounded-full bg-on-surface-variant/40 mx-auto mb-5" />

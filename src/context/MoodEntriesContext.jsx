@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
-  addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc
+  addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, writeBatch
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from './AuthContext'
@@ -89,9 +89,45 @@ export function MoodEntriesProvider({ children }) {
     [user]
   )
 
+  // Nhập hàng loạt: ghi đè theo id; không có id thì trùng (date + time) sẽ cập nhật, còn lại thêm mới.
+  // items: [{ id|null, entry }]. Trả về { added, updated }.
+  const importEntries = useCallback(
+    async (items) => {
+      const current = user ? entries : loadLocal()
+      const byId = new Map(current.map((e) => [e.id, e]))
+      const byTime = new Map(current.map((e) => [`${e.date}|${e.time}`, e]))
+      let added = 0
+      let updated = 0
+      const writes = new Map() // id → entry (bản ghi sau cùng thắng)
+      for (const { id, entry } of items) {
+        const match = (id && byId.get(id)) || byTime.get(`${entry.date}|${entry.time}`)
+        const finalId = match?.id || id || crypto.randomUUID()
+        if (!writes.has(finalId)) match ? updated++ : added++
+        writes.set(finalId, entry)
+      }
+      if (!user) {
+        const merged = current.map((e) => (writes.has(e.id) ? { ...e, ...writes.get(e.id) } : e))
+        for (const [id, entry] of writes) if (!byId.has(id)) merged.unshift({ id, ...entry })
+        saveLocal(merged)
+        setEntries(merged)
+        return { added, updated }
+      }
+      const list = [...writes]
+      for (let i = 0; i < list.length; i += 400) {
+        const batch = writeBatch(db)
+        for (const [id, entry] of list.slice(i, i + 400)) {
+          batch.set(doc(db, 'users', user.uid, 'entries', id), entry, { merge: true })
+        }
+        await batch.commit()
+      }
+      return { added, updated }
+    },
+    [user, entries]
+  )
+
   const value = useMemo(
-    () => ({ entries, loading, addEntry, updateEntry, deleteEntry }),
-    [entries, loading, addEntry, updateEntry, deleteEntry]
+    () => ({ entries, loading, addEntry, updateEntry, deleteEntry, importEntries }),
+    [entries, loading, addEntry, updateEntry, deleteEntry, importEntries]
   )
 
   return <MoodEntriesContext.Provider value={value}>{children}</MoodEntriesContext.Provider>
