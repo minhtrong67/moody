@@ -139,11 +139,14 @@ select option {
   .page { padding-inline: 2rem; max-width: 48rem; }
 }
 @media (min-width: 1280px) {
-  .page { max-width: 72rem; }
+  .page { max-width: 72rem; padding-inline: 2.5rem; }
+}
+@media (min-width: 1536px) {
+  .page { max-width: 84rem; padding-inline: 3rem; }
 }
 .page-narrow { max-width: 32rem; }
 @media (min-width: 768px) { .page-narrow { max-width: 40rem; } }
-@media (min-width: 1280px) { .page-narrow { max-width: 44rem; } }
+@media (min-width: 1280px) { .page-narrow { max-width: 48rem; } }
 
 /* =====================================================================
    Typography scale (M3)

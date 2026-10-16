@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Home, HistoryIcon, BarChart3, Settings, ListPlus, Smile, Plus } from './icons'
 import { useI18n } from '../i18n'
+import { useAuth } from '../context/AuthContext'
+import { LogOut } from './icons'
 
 export const NAV_MAIN = [
   { to: '/', key: 'nav.today', icon: Home, end: true },
@@ -17,6 +19,7 @@ export const NAV_MANAGE = [
 
 function DrawerBody({ onNavigate }) {
   const { t } = useI18n()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
   return (
     <>
@@ -46,7 +49,22 @@ function DrawerBody({ onNavigate }) {
         ))}
       </nav>
 
-      <div className="px-7 py-4 t-label-medium text-on-surface-variant shrink-0">{t('nav.tagline')}</div>
+      {user ? (
+        <div className="mx-3 mb-3 p-3 rounded-m3-lg bg-surface-container flex items-center gap-3 shrink-0">
+          {user.photoURL && (
+            <img src={user.photoURL} alt="" width="40" height="40" className="w-10 h-10 rounded-full shrink-0" referrerPolicy="no-referrer" />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="t-title-small truncate">{user.displayName}</p>
+            <p className="t-label-small text-on-surface-variant truncate">{user.email}</p>
+          </div>
+          <button onClick={logout} aria-label={t('common.logout')} title={t('common.logout')} className="icon-btn state text-on-surface-variant shrink-0">
+            <LogOut size={20} />
+          </button>
+        </div>
+      ) : (
+        <div className="px-7 py-4 t-label-medium text-on-surface-variant shrink-0">{t('nav.tagline')}</div>
+      )}
     </>
   )
 }

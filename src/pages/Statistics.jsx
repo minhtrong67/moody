@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useSessionState, reviveDate } from '../hooks/useSessionState'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell
@@ -6,7 +7,8 @@ import {
 import { ChevronLeft, ChevronRight, FileDown, Image as ImageIcon, Loader2, Smile, CalendarCheck2, Flame, Heart } from '../components/icons'
 import { useMoodEntries } from '../hooks/useMoodEntries'
 import { useActivities } from '../hooks/useActivities'
-import { useThemeColors } from '../hooks/useIsDark'
+import { useThemeColors, useIsDark } from '../hooks/useIsDark'
+import { CATEGORY_COLORS, OTHER_COLOR, REPORT_CATEGORY_COLORS } from '../lib/chartColors'
 import { useMoods } from '../hooks/useMoods'
 import { useI18n } from '../i18n'
 import { calcStreak } from '../lib/dateUtils'
@@ -24,11 +26,12 @@ export default function Statistics() {
   const i18n = useI18n()
   const { t } = i18n
   const loading = entriesLoading || activitiesLoading || moodsLoading
-  const [period, setPeriod] = useState('month')
-  const [cursor, setCursor] = useState(new Date())
+  const [period, setPeriod] = useSessionState('stats.period', 'month')
+  const [cursor, setCursor] = useSessionState('stats.cursor', () => new Date(), { revive: reviveDate })
   const [exporting, setExporting] = useState(null)
   // Màu literal (không dùng CSS var) để SVG của Recharts hiển thị đúng ở mọi theme / màu chủ đề.
   const c = useThemeColors()
+  const isDark = useIsDark()
 
   const byDate = useMemo(() => latestByDate(entries), [entries])
   const activityById = useMemo(() => Object.fromEntries(activities.map((a) => [a.id, a])), [activities])
@@ -37,14 +40,24 @@ export default function Statistics() {
   const periodEntries = useMemo(() => getBuckets(period, cursor, byDate, i18n).entries, [period, cursor, byDate, i18n])
   const distribution = useMemo(() => moodDistribution(periodEntries, moods), [periodEntries, moods])
 
-  const activityStats = useMemo(() => {
+  // Toàn bộ hoạt động trong kỳ, sắp theo số lần giảm dần.
+  const activityAll = useMemo(() => {
     const counts = {}
     for (const e of periodEntries) for (const id of e.activities || []) counts[id] = (counts[id] || 0) + 1
     return Object.entries(counts)
       .map(([id, count]) => ({ id, count, label: activityById[id]?.label || '—', emoji: activityById[id]?.emoji || '❔' }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8)
   }, [periodEntries, activityById])
+
+  const activityStats = useMemo(() => activityAll.slice(0, 8), [activityAll])
+
+  // Biểu đồ tròn hoạt động: 8 hoạt động nhiều nhất (màu cố định theo thứ tự), phần còn lại gộp thành "Khác".
+  const buildActivityPie = (palette) => {
+    const top = activityAll.slice(0, 8).map((a, i) => ({ ...a, color: palette[i] }))
+    const rest = activityAll.slice(8).reduce((sum, a) => sum + a.count, 0)
+    return rest > 0 ? [...top, { id: 'other', label: t('stats.other'), emoji: '…', count: rest, color: OTHER_COLOR }] : top
+  }
+  const activityPie = useMemo(() => buildActivityPie(CATEGORY_COLORS(isDark)), [activityAll, isDark, t]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const stats = useMemo(() => {
     const list = periodEntries
@@ -70,7 +83,7 @@ export default function Statistics() {
   async function runExport(kind) {
     setExporting(kind)
     try {
-      const args = { periodLabel: label, stats, distribution, timeSeries, activityStats, i18n }
+      const args = { periodLabel: label, stats, distribution, timeSeries, activityStats, activityPie: buildActivityPie(REPORT_CATEGORY_COLORS), i18n }
       await (kind === 'pdf' ? exportStatsPdf(args) : exportStatsImage(args))
     } finally {
       setExporting(null)
@@ -149,13 +162,13 @@ export default function Statistics() {
           {!hasData ? (
             <p className="t-body-medium text-on-surface-variant text-center py-10">{t('stats.noData')}</p>
           ) : (
-            <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
-              <ChartCard title={`${t('stats.trend')} (${label})`}>
+            <div className="lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-6">
+              <ChartCard title={`${t('stats.trend')} (${label})`} wide>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={timeSeries} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={c.line} vertical={false} />
                     <XAxis dataKey="label" tick={tickStyle} interval={period === 'month' ? 2 : 0} />
-                    <YAxis domain={[0, 5]} tick={tickStyle} width={30} />
+                    <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} tick={tickStyle} width={30} />
                     <Tooltip formatter={(v) => [v != null ? `${v}/5` : t('stats.none'), 'Mood']} {...tooltipProps} />
                     <Legend wrapperStyle={legendStyle} />
                     <Bar dataKey="avg" name={t('stats.avgMood')} radius={[4, 4, 0, 0]} fill={c.accent} isAnimationActive={false} />
@@ -177,7 +190,7 @@ export default function Statistics() {
                 </ResponsiveContainer>
               </ChartCard>
 
-              <ChartCard title={t('stats.share')} square>
+              <ChartCard title={t('stats.share')}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -213,6 +226,33 @@ export default function Statistics() {
                   </ResponsiveContainer>
                 </ChartCard>
               )}
+
+              {activityPie.length > 0 && (
+                <ChartCard title={`${t('stats.activitiesShare')} (${label})`}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={activityPie}
+                        dataKey="count"
+                        nameKey="label"
+                        cx="50%"
+                        cy="44%"
+                        outerRadius="65%"
+                        label={pieLabel}
+                        labelLine={{ stroke: c.line }}
+                        style={{ fontSize: 11 }}
+                        stroke={c.surface}
+                        strokeWidth={2}
+                        isAnimationActive={false}
+                      >
+                        {activityPie.map((d) => (<Cell key={d.id} fill={d.color} />))}
+                      </Pie>
+                      <Legend verticalAlign="bottom" wrapperStyle={legendStyle} />
+                      <Tooltip {...tooltipProps} formatter={(v, name) => [t('stats.times', { n: v }), name]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartCard>
+              )}
             </div>
           )}
         </>
@@ -221,11 +261,12 @@ export default function Statistics() {
   )
 }
 
-function ChartCard({ title, children, footer, square }) {
+// Mọi thẻ biểu đồ cùng chiều cao (h-72) để lưới trên màn hình lớn luôn cân đối; thẻ `wide` chiếm cả hai cột.
+function ChartCard({ title, children, footer, wide }) {
   return (
-    <section className="mb-8">
+    <section className={`mb-8 lg:mb-0 min-w-0 ${wide ? 'lg:col-span-2' : ''}`}>
       <p className="t-title-medium mb-2 px-1">{title}</p>
-      <div className={`w-full ${square ? 'aspect-square max-h-72' : 'aspect-[4/3] max-h-64'} card-filled p-2`}>{children}</div>
+      <div className={`w-full h-64 md:h-72 ${wide ? 'lg:h-80' : ''} card-filled p-2`}>{children}</div>
       {footer}
     </section>
   )

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home, HomeFilled, HistoryIcon, HistoryFilled, BarChart3, BarChartFilled, Settings, Plus, ArrowUp,
   Menu, Sun, Moon, Monitor
@@ -65,7 +65,11 @@ const TABS = [
 
 export default function AppShell() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { t } = useI18n()
+  // FAB "check-in mới" chỉ hiện ở các trang cần thêm nhanh (Hôm nay, Lịch sử);
+  // các trang còn lại (Thống kê, Cài đặt, Quản lý…) không có hành động chính nên không hiện FAB.
+  const showAddFab = pathname === '/' || pathname === '/history'
   const [scrolled, setScrolled] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -123,7 +127,9 @@ export default function AppShell() {
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label={t('common.scrollTop')}
-        className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 bottom-[calc(var(--safe-bottom)+11rem)] md:bottom-6 ${
+        className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 md:bottom-6 ${
+          showAddFab ? 'bottom-[calc(var(--safe-bottom)+11rem)]' : 'bottom-[calc(var(--safe-bottom)+6.5rem)]'
+        } ${
           showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
         }`}
       >
@@ -131,13 +137,13 @@ export default function AppShell() {
       </button>
 
       {/* FAB chính (điện thoại). Trên màn hình lớn FAB nằm trong rail / drawer. */}
-      <button
+      {showAddFab && <button
         onClick={() => navigate('/checkin')}
         aria-label={t('nav.newCheckin')}
         className="state md:hidden fixed right-4 z-30 w-14 h-14 rounded-m3-lg bg-primary-container text-on-primary-container shadow-elev-3 hover:shadow-elev-4 flex items-center justify-center transition-shadow bottom-[calc(var(--safe-bottom)+6rem)]"
       >
         <Plus size={24} />
-      </button>
+      </button>}
 
       {/* Navigation bar (điện thoại) */}
       <nav

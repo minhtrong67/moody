@@ -6,6 +6,7 @@ import {
   Smartphone,
   Download,
   Upload,
+  ChevronDown,
   LogOut,
   Heart,
   Check,
@@ -18,6 +19,8 @@ import { START_PAGES, getStartPage, setStartPage } from "../lib/startPage";
 import {
   FORMATS,
   buildExportBlob,
+  buildExportAllBlob,
+  IMPORT_EXTS,
   downloadBlob,
   entriesToRows,
   activitiesToRows,
@@ -29,6 +32,7 @@ import {
 } from "../lib/dataTransfer";
 import { DEFAULT_ACTIVITIES } from "../lib/moodConfig";
 import { useToast } from "../context/ToastContext";
+import { useSessionState } from "../hooks/useSessionState";
 import { useActivities } from "../hooks/useActivities";
 import { useMoods } from "../hooks/useMoods";
 import { useAuth } from "../context/AuthContext";
@@ -64,7 +68,8 @@ export default function Settings() {
   const [fontScale, setFontScaleState] = useState(getStoredFontScale());
   const [seed, setSeedState] = useState(getStoredSeed());
   const [startPage, setStartPageState] = useState(getStartPage());
-  const [format, setFormat] = useState("csv");
+  const [format, setFormat] = useSessionState("settings.format", "csv");
+  const [dataOpen, setDataOpen] = useSessionState("settings.dataOpen", false);
   const [busy, setBusy] = useState(null);
   const fileRef = useRef(null);
   const importTarget = useRef(null);
@@ -98,13 +103,14 @@ export default function Settings() {
 
   const activityById = Object.fromEntries(activities.map((a) => [a.id, a]));
 
+  const rowsFor = {
+    entries: () => entriesToRows(entries, activityById),
+    activities: () => activitiesToRows(activities),
+    moods: () => moodsToRows(moods),
+  };
+
   async function exportDataset(dataset) {
-    const rows =
-      dataset === "entries"
-        ? entriesToRows(entries, activityById)
-        : dataset === "activities"
-          ? activitiesToRows(activities)
-          : moodsToRows(moods);
+    const rows = rowsFor[dataset]();
     if (rows.length === 0) return showToast(t("settings.exportEmpty"));
     setBusy(`export:${dataset}`);
     try {
@@ -119,45 +125,77 @@ export default function Settings() {
     }
   }
 
-  function pickImport(dataset) {
-    importTarget.current = dataset;
+  // Xuất toàn bộ dữ liệu trong một lần (json: 1 file, xlsx: 1 file 3 sheet, csv: 1 file .zip chứa 3 csv).
+  async function exportAll() {
+    const all = { entries: rowsFor.entries(), activities: rowsFor.activities(), moods: rowsFor.moods() };
+    setBusy("export:all");
+    try {
+      const { blob, ext } = await buildExportAllBlob(format, all);
+      const name = `moody-all-${todayISO()}.${ext}`;
+      downloadBlob(blob, name);
+      showToast(t("settings.exported", { name }));
+    } catch {
+      showToast(t("settings.exportFailed"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function pickImport(target) {
+    importTarget.current = target;
     fileRef.current?.click();
+  }
+
+  // Nhập theo thứ tự hoạt động → tâm trạng → check-in (check-in tham chiếu hoạt động nên nhập sau cùng).
+  async function importParsed(parsed) {
+    const total = { added: 0, updated: 0, skipped: 0 };
+    const merge = (r, skipped) => {
+      total.added += r?.added ?? 0;
+      total.updated += r?.updated ?? 0;
+      total.skipped += skipped;
+    };
+    let knownActivities = activities;
+    if (parsed.activities) {
+      const n = normalizeActivities(parsed.activities, DEFAULT_ACTIVITIES.map((a) => a.id));
+      if (n.items.length) {
+        merge(await importActivities(n.items), n.skipped);
+        const extra = n.items
+          .filter((i) => i.id && !activities.some((a) => a.id === i.id))
+          .map((i) => ({ id: i.id, label: i.label, emoji: i.emoji }));
+        knownActivities = [...activities, ...extra];
+      } else total.skipped += n.skipped;
+    }
+    if (parsed.moods) {
+      const n = normalizeMoods(parsed.moods, moods.map((m) => m.key));
+      if (n.items.length) merge(await importMoods(n.items), n.skipped);
+      else total.skipped += n.skipped;
+    }
+    if (parsed.entries) {
+      const n = normalizeEntries(parsed.entries, { moods, activities: knownActivities });
+      if (n.items.length) merge(await importEntries(n.items), n.skipped);
+      else total.skipped += n.skipped;
+    }
+    return total;
   }
 
   async function onFileChosen(e) {
     const file = e.target.files?.[0];
     e.target.value = ""; // cho phép chọn lại cùng một file
-    const dataset = importTarget.current;
-    if (!file || !dataset) return;
-    setBusy(`import:${dataset}`);
+    const target = importTarget.current;
+    if (!file || !target) return;
+    setBusy(`import:${target}`);
     try {
-      const raw = await parseImportFile(file);
-      let parsed;
-      if (dataset === "entries") parsed = normalizeEntries(raw, { moods, activities });
-      else if (dataset === "activities")
-        parsed = normalizeActivities(raw, DEFAULT_ACTIVITIES.map((a) => a.id));
-      else parsed = normalizeMoods(raw, moods.map((m) => m.key));
-      if (parsed.items.length === 0) return showToast(t("settings.importNothing"));
-      let result;
+      const parsed = await parseImportFile(file, target === "all" ? null : target);
+      let total;
       try {
-        result =
-          dataset === "entries"
-            ? await importEntries(parsed.items)
-            : dataset === "activities"
-              ? await importActivities(parsed.items)
-              : await importMoods(parsed.items);
+        total = await importParsed(parsed);
       } catch {
         return showToast(t("settings.importErr.write"));
       }
-      showToast(
-        t("settings.importDone", {
-          added: result.added ?? 0,
-          updated: result.updated ?? 0,
-          skipped: parsed.skipped,
-        }),
-      );
+      if (total.added + total.updated === 0) return showToast(t("settings.importNothing"));
+      showToast(t("settings.importDone", total));
     } catch (err) {
-      const known = ["format", "size", "invalid"].includes(err?.message) ? err.message : "read";
+      const known = ["format", "size", "invalid", "mismatch"].includes(err?.message) ? err.message : "read";
       showToast(t(`settings.importErr.${known}`));
     } finally {
       setBusy(null);
@@ -314,24 +352,6 @@ export default function Settings() {
             )}
           </SettingGroup>
 
-          <SettingGroup title={t("settings.startPage")}>
-            <p className="t-body-medium text-on-surface-variant mb-3 px-1">
-              {t("settings.startPageText")}
-            </p>
-            <TextField
-              as="select"
-              label={t("settings.startPage")}
-              fieldBg="var(--md-surface-container-highest)"
-              value={startPage}
-              onChange={(e) => handleStartPage(e.target.value)}
-            >
-              {START_PAGES.map((p) => (
-                <option key={p.path} value={p.path}>
-                  {t(p.key)}
-                </option>
-              ))}
-            </TextField>
-          </SettingGroup>
         </div>
 
         <div>
@@ -356,50 +376,115 @@ export default function Settings() {
             </div>
           </SettingGroup>
 
-          <SettingGroup title={t("settings.exportImport")}>
+          <SettingGroup title={t("settings.startPage")}>
             <p className="t-body-medium text-on-surface-variant mb-3 px-1">
-              {t("settings.dataHint")}
+              {t("settings.startPageText")}
             </p>
-            <p className="t-label-medium text-on-surface-variant mb-2 px-1">
-              {t("settings.dataFormat")}
-            </p>
-            <SegmentedButton
-              className="mb-4"
-              value={format}
-              onChange={setFormat}
-              options={FORMATS.map((f) => ({ key: f, label: `.${f}` }))}
-            />
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv,.xlsx,.json"
-              onChange={onFileChosen}
-              className="hidden"
-            />
-            <div className="space-y-2">
-              {["entries", "activities", "moods"].map((ds) => (
-                <div key={ds} className="card-filled p-4">
-                  <p className="t-title-small mb-3">{t(`settings.dataset.${ds}`)}</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => exportDataset(ds)}
-                      disabled={!!busy}
-                      className="btn btn-outlined state flex-1 justify-center"
-                    >
-                      <Download size={18} />
-                      {t("settings.exportBtn")}
-                    </button>
-                    <button
-                      onClick={() => pickImport(ds)}
-                      disabled={!!busy}
-                      className="btn btn-tonal state flex-1 justify-center"
-                    >
-                      <Upload size={18} />
-                      {t("settings.importBtn")}
-                    </button>
+            <TextField
+              as="select"
+              label={t("settings.startPage")}
+              fieldBg="var(--md-surface-container-highest)"
+              value={startPage}
+              onChange={(e) => handleStartPage(e.target.value)}
+            >
+              {START_PAGES.map((p) => (
+                <option key={p.path} value={p.path}>
+                  {t(p.key)}
+                </option>
+              ))}
+            </TextField>
+          </SettingGroup>
+
+          <SettingGroup title={t("settings.data")}>
+            <div className="card-filled overflow-hidden">
+              <button
+                onClick={() => setDataOpen((v) => !v)}
+                className="state w-full flex items-center gap-4 px-4 h-16 text-left"
+                aria-expanded={dataOpen}
+              >
+                <span className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
+                  <Download size={22} />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block t-title-small">{t("settings.exportImport")}</span>
+                  <span className="block t-body-small text-on-surface-variant truncate">{t("settings.exportImportSub")}</span>
+                </span>
+                <ChevronDown
+                  size={24}
+                  className={`text-on-surface-variant shrink-0 transition-transform duration-200 ${dataOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {dataOpen && (
+                <div className="px-4 pb-4 pt-1 pop-in">
+                  <p className="t-body-medium text-on-surface-variant mb-4">{t("settings.dataHint")}</p>
+                  <p className="t-label-medium text-on-surface-variant mb-2">{t("settings.dataFormat")}</p>
+                  <SegmentedButton
+                    className="mb-5"
+                    value={format}
+                    onChange={setFormat}
+                    options={FORMATS.map((f) => ({ key: f, label: `.${f}` }))}
+                  />
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept={IMPORT_EXTS.map((x) => `.${x}`).join(",")}
+                    onChange={onFileChosen}
+                    className="hidden"
+                  />
+
+                  <div className="rounded-m3-md bg-surface-container-highest p-4 mb-3">
+                    <p className="t-title-small mb-1">{t("settings.all")}</p>
+                    <p className="t-body-small text-on-surface-variant mb-3">
+                      {t(`settings.allHint.${format}`)}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={exportAll}
+                        disabled={!!busy}
+                        className="btn btn-filled state flex-1 justify-center"
+                      >
+                        <Download size={18} />
+                        {t("settings.exportAll")}
+                      </button>
+                      <button
+                        onClick={() => pickImport("all")}
+                        disabled={!!busy}
+                        className="btn btn-tonal state flex-1 justify-center"
+                      >
+                        <Upload size={18} />
+                        {t("settings.importAll")}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {["entries", "activities", "moods"].map((ds) => (
+                      <div key={ds} className="rounded-m3-md bg-surface-container-highest p-4">
+                        <p className="t-title-small mb-3">{t(`settings.dataset.${ds}`)}</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => exportDataset(ds)}
+                            disabled={!!busy}
+                            className="btn btn-outlined state flex-1 justify-center"
+                          >
+                            <Download size={18} />
+                            {t("settings.exportBtn")}
+                          </button>
+                          <button
+                            onClick={() => pickImport(ds)}
+                            disabled={!!busy}
+                            className="btn btn-tonal state flex-1 justify-center"
+                          >
+                            <Upload size={18} />
+                            {t("settings.importBtn")}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
             </div>
           </SettingGroup>
 

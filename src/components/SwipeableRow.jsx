@@ -66,7 +66,7 @@ function SwipeableRow({ onEdit, onDelete, children }) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-m3-md">
+    <div className="relative overflow-hidden rounded-m3-md h-full">
       <div className="absolute inset-0 flex" aria-hidden="true">
         <div
           ref={editRef}
@@ -93,7 +93,7 @@ function SwipeableRow({ onEdit, onDelete, children }) {
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         style={{ touchAction: 'pan-y' }}
-        className="relative will-change-transform"
+        className="relative will-change-transform h-full"
       >
         {children}
       </div>

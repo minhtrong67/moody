@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Plus, GripVertical, ArrowUp, ArrowDown, Loader2 } from '../components/icons'
+import { Plus, GripVertical, ArrowUp, ArrowDown, Loader2, Search, X } from '../components/icons'
+import { useSessionState } from '../hooks/useSessionState'
 import { useActivities } from '../hooks/useActivities'
 import { useToast } from '../context/ToastContext'
 import SwipeableRow from '../components/SwipeableRow'
@@ -20,6 +21,7 @@ export default function ManageActivities() {
   const [saving, setSaving] = useState(false)
   const [confirmUpdateOpen, setConfirmUpdateOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [search, setSearch] = useSessionState('manageActs.search', '')
 
   // Danh sách hiển thị cục bộ để kéo-thả mượt (không ghi liên tục khi đang kéo,
   // chỉ lưu 1 lần khi thả tay ra).
@@ -35,6 +37,12 @@ export default function ManageActivities() {
       orderRef.current = activities
     }
   }, [activities])
+
+  const query = search.trim().toLowerCase()
+  const canReorder = !query // đang lọc thì tắt kéo-thả / mũi tên (vị trí hiển thị không còn khớp thứ tự thật)
+  const visible = order
+    .map((a, i) => ({ a, i }))
+    .filter(({ a }) => !query || a.label.toLowerCase().includes(query))
 
   function openAdd() {
     setEditingId(null)
@@ -165,9 +173,26 @@ export default function ManageActivities() {
         {t('manageActs.intro')}
       </p>
 
-      <button onClick={openAdd} className="btn btn-filled btn-lg btn-block state mb-6">
-        <Plus size={18} /> {t('manageActs.add')}
-      </button>
+      <div className="md:flex md:items-center md:gap-4 mb-6 space-y-3 md:space-y-0">
+        <div className="relative flex-1">
+          <Search size={24} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('manageActs.searchPlaceholder')}
+            aria-label={t('manageActs.search')}
+            className="w-full h-14 rounded-full bg-surface-container-high pl-14 pr-12 t-body-large focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} aria-label={t('manageActs.clearSearch')} className="icon-btn state absolute right-1 top-1/2 -translate-y-1/2">
+              <X size={20} />
+            </button>
+          )}
+        </div>
+        <button onClick={openAdd} className="btn btn-filled btn-lg btn-block md:w-auto state shrink-0">
+          <Plus size={18} /> {t('manageActs.add')}
+        </button>
+      </div>
 
       <Dialog open={formOpen} title={editingId ? t('manageActs.edit') : t('manageActs.new')} onClose={closeForm}>
         <div className="flex gap-3">
@@ -199,8 +224,11 @@ export default function ManageActivities() {
       {loading ? (
         <ManageListSkeleton />
       ) : (
+      visible.length === 0 ? (
+        <p className="t-body-medium text-on-surface-variant text-center py-16">{t('manageActs.noResults')}</p>
+      ) : (
       <ul className="space-y-2">
-        {order.map((a, i) => (
+        {visible.map(({ a, i }) => (
           <li
             key={a.id}
             ref={(el) => (rowRefs.current[i] = el)}
@@ -209,19 +237,23 @@ export default function ManageActivities() {
           >
             <SwipeableRow onEdit={() => openEdit(a)} onDelete={() => setPendingDelete(a)}>
               <div className={`flex items-center gap-2 rounded-m3-md px-2 py-2 transition-shadow ${dragActiveIndex === i ? 'shadow-elev-3 bg-surface-container-high' : 'bg-surface-container-highest'}`}>
-                <span
-                  onPointerDown={(e) => handleGripPointerDown(e, i)}
-                  className="text-on-surface-variant cursor-grab active:cursor-grabbing shrink-0 touch-none p-1"
-                  aria-label={t('manageActs.drag')}
-                >
-                  <GripVertical size={24} />
-                </span>
+                {canReorder ? (
+                  <span
+                    onPointerDown={(e) => handleGripPointerDown(e, i)}
+                    className="text-on-surface-variant cursor-grab active:cursor-grabbing shrink-0 touch-none p-1"
+                    aria-label={t('manageActs.drag')}
+                  >
+                    <GripVertical size={24} />
+                  </span>
+                ) : (
+                  <span className="w-2 shrink-0" />
+                )}
                 <span className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-xl shrink-0">{a.emoji}</span>
                 <div className="flex-1 min-w-0 pl-1">
                   <p className="t-body-large truncate">{a.label}</p>
                   <p className="t-body-small text-on-surface-variant">{a.custom ? t('manageActs.custom') : t('manageActs.default')}</p>
                 </div>
-                <div className="flex items-center shrink-0">
+                {canReorder && <div className="flex items-center shrink-0">
                   <button
                     onClick={() => move(i, -1)}
                     disabled={i === 0}
@@ -238,13 +270,13 @@ export default function ManageActivities() {
                   >
                     <ArrowDown size={24} />
                   </button>
-                </div>
+                </div>}
               </div>
             </SwipeableRow>
           </li>
         ))}
       </ul>
-      )}
+      ))}
     </div>
   )
 }

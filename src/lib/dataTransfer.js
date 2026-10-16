@@ -106,6 +106,45 @@ function tableToObjects(table) {
 
 // ---------- Xuất ----------
 
+async function sheetsToBlob(sheets) {
+  const { default: writeExcelFile } = await import('write-excel-file/universal')
+  return writeExcelFile(
+    sheets.map(({ name, headers, rows }) => ({
+      sheet: name,
+      data: [
+        headers.map((h) => ({ value: h, fontWeight: 'bold' })),
+        ...rows.map((r) =>
+          headers.map((h) => {
+            const v = r[h]
+            if (typeof v === 'number') return { value: v, type: Number }
+            if (typeof v === 'boolean') return { value: v, type: Boolean }
+            return { value: String(escapeCell(v ?? '')), type: String }
+          })
+        ),
+      ],
+    }))
+  ).toBlob()
+}
+
+// Xuất toàn bộ (Lịch sử check-in + Hoạt động + Tâm trạng) trong MỘT file:
+// json → 1 file; xlsx → 1 workbook 3 sheet; csv → 1 file .zip chứa 3 file .csv.
+// all = { entries, activities, moods } (mỗi mục là mảng dòng phẳng). Trả { blob, ext }.
+export async function buildExportAllBlob(format, all) {
+  const names = Object.keys(DATASETS)
+  if (format === 'json') {
+    const payload = { app: 'moody', dataset: 'all', version: 1, exportedAt: new Date().toISOString(), data: all }
+    return { blob: new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), ext: 'json' }
+  }
+  if (format === 'xlsx') {
+    const blob = await sheetsToBlob(names.map((name) => ({ name, headers: DATASETS[name].headers, rows: all[name] || [] })))
+    return { blob, ext: 'xlsx' }
+  }
+  const { zipSync, strToU8 } = await import('fflate')
+  const files = {}
+  for (const name of names) files[`${name}.csv`] = strToU8(toCsv(DATASETS[name].headers, all[name] || []))
+  return { blob: new Blob([zipSync(files)], { type: 'application/zip' }), ext: 'zip' }
+}
+
 export async function buildExportBlob(format, dataset, rows) {
   const headers = DATASETS[dataset].headers
   if (format === 'json') {
@@ -115,19 +154,7 @@ export async function buildExportBlob(format, dataset, rows) {
   if (format === 'csv') {
     return new Blob([toCsv(headers, rows)], { type: 'text/csv;charset=utf-8' })
   }
-  const { default: writeExcelFile } = await import('write-excel-file/universal')
-  const sheetData = [
-    headers.map((h) => ({ value: h, fontWeight: 'bold' })),
-    ...rows.map((r) =>
-      headers.map((h) => {
-        const v = r[h]
-        if (typeof v === 'number') return { value: v, type: Number }
-        if (typeof v === 'boolean') return { value: v, type: Boolean }
-        return { value: String(escapeCell(v ?? '')), type: String }
-      })
-    ),
-  ]
-  return writeExcelFile(sheetData).toBlob()
+  return sheetsToBlob([{ name: dataset, headers, rows }])
 }
 
 export function downloadBlob(blob, filename) {
@@ -145,29 +172,61 @@ export function downloadBlob(blob, filename) {
 
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024
 
+export const IMPORT_EXTS = ['csv', 'xlsx', 'json', 'zip']
+
 export function formatOfFile(file) {
   const ext = file.name.split('.').pop().toLowerCase()
-  return FORMATS.includes(ext) ? ext : null
+  return IMPORT_EXTS.includes(ext) ? ext : null
 }
 
-// Đọc file → mảng object thô (chưa kiểm tra nội dung).
-export async function parseImportFile(file) {
+const ALL_NAMES = Object.keys(DATASETS)
+
+// Đọc file → { entries?, activities?, moods? } (mảng object thô, chưa kiểm tra nội dung).
+// Hỗ trợ file của từng mục lẫn file "xuất toàn bộ" (json / xlsx nhiều sheet / zip gồm các csv).
+// `only` (tùy chọn): chỉ lấy một mục; file của mục khác → lỗi 'mismatch'.
+export async function parseImportFile(file, only = null) {
   const format = formatOfFile(file)
   if (!format) throw new Error('format')
   if (file.size > MAX_IMPORT_BYTES) throw new Error('size')
+  const out = {}
   try {
     if (format === 'json') {
       const json = JSON.parse(await file.text())
-      const list = Array.isArray(json) ? json : json?.data
-      if (!Array.isArray(list)) throw new Error('invalid')
-      return list.filter((x) => x && typeof x === 'object' && !Array.isArray(x))
+      const isObj = (x) => x && typeof x === 'object' && !Array.isArray(x)
+      const clean = (l) => (Array.isArray(l) ? l.filter(isObj) : null)
+      if (Array.isArray(json)) out[only || 'entries'] = clean(json)
+      else if (json?.dataset === 'all' && isObj(json.data)) {
+        for (const n of ALL_NAMES) if (clean(json.data[n])) out[n] = clean(json.data[n])
+      } else if (ALL_NAMES.includes(json?.dataset)) out[json.dataset] = clean(json.data)
+      else if (Array.isArray(json?.data)) out[only || 'entries'] = clean(json.data)
+    } else if (format === 'csv') {
+      if (!only) throw new Error('format') // CSV đơn lẻ không nói rõ là mục nào → chỉ nhập theo từng mục
+      out[only] = tableToObjects(parseCsv(await file.text()))
+    } else if (format === 'xlsx') {
+      const { default: readExcelFile } = await import('read-excel-file/universal')
+      const sheets = await readExcelFile(file)
+      const named = sheets.filter((sh) => ALL_NAMES.includes(String(sh.sheet).toLowerCase()))
+      if (named.length) for (const sh of named) out[String(sh.sheet).toLowerCase()] = tableToObjects(sh.data)
+      else if (sheets[0]) out[only || 'entries'] = tableToObjects(sheets[0].data)
+    } else {
+      const { unzipSync, strFromU8 } = await import('fflate')
+      const files = unzipSync(new Uint8Array(await file.arrayBuffer()), { filter: (f) => f.size < MAX_IMPORT_BYTES })
+      for (const [name, bytes] of Object.entries(files)) {
+        const base = name.split('/').pop().replace(/\.csv$/i, '').toLowerCase()
+        if (ALL_NAMES.includes(base) && /\.csv$/i.test(name)) out[base] = tableToObjects(parseCsv(strFromU8(bytes)))
+      }
     }
-    if (format === 'csv') return tableToObjects(parseCsv(await file.text()))
-    const { readSheet } = await import('read-excel-file/universal')
-    return tableToObjects(await readSheet(file))
   } catch (err) {
-    throw new Error(err?.message === 'invalid' ? 'invalid' : 'read')
+    throw new Error(err?.message === 'format' ? 'format' : 'read')
   }
+  const found = ALL_NAMES.filter((n) => Array.isArray(out[n]))
+  if (found.length === 0) throw new Error('invalid')
+  // CSV / mảng trần không nói rõ là mục nào: nhận theo `only`. File có nhãn mục thì phải khớp.
+  if (only) {
+    if (!Array.isArray(out[only])) throw new Error('mismatch')
+    return { [only]: out[only] }
+  }
+  return Object.fromEntries(found.map((n) => [n, out[n]]))
 }
 
 const str = (v) => (v === null || v === undefined ? '' : String(v).trim())

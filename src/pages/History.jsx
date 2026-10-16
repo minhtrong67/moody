@@ -1,4 +1,5 @@
 import { memo, useCallback, useDeferredValue, useMemo, useState } from "react";
+import { useSessionState, reviveDate } from "../hooks/useSessionState";
 import { useNavigate } from "react-router-dom";
 import {
   List, Calendar as CalendarIcon, Search, ChevronLeft, ChevronRight, SlidersHorizontal,
@@ -25,7 +26,7 @@ export default function History() {
   const { moodByKey, moods, loading: moodsLoading } = useMoods();
   const { t } = useI18n();
   const loading = entriesLoading || activitiesLoading || moodsLoading;
-  const [view, setView] = useState("list");
+  const [view, setView] = useSessionState("history.view", "list");
 
   const activityById = useMemo(() => Object.fromEntries(activities.map((a) => [a.id, a])), [activities]);
 
@@ -46,7 +47,7 @@ export default function History() {
       {view === "list" ? (
         <ListView loading={loading} entries={entries} deleteEntry={deleteEntry} activityById={activityById} moodByKey={moodByKey} moods={moods} />
       ) : (
-        <CalendarView loading={loading} entries={entries} activityById={activityById} moodByKey={moodByKey} />
+        <CalendarView loading={loading} entries={entries} activityById={activityById} moodByKey={moodByKey} moods={moods} />
       )}
     </div>
   );
@@ -55,12 +56,12 @@ export default function History() {
 function ListView({ loading, entries, deleteEntry, activityById, moodByKey, moods }) {
   const navigate = useNavigate();
   const { t, locale } = useI18n();
-  const [period, setPeriod] = useState("all");
-  const [moodFilter, setMoodFilter] = useState("all");
-  const [sort, setSort] = useState("date_desc");
-  const [search, setSearch] = useState("");
+  const [period, setPeriod] = useSessionState("history.period", "all");
+  const [moodFilter, setMoodFilter] = useSessionState("history.mood", "all");
+  const [sort, setSort] = useSessionState("history.sort", "date_desc");
+  const [search, setSearch] = useSessionState("history.search", "");
   const deferredSearch = useDeferredValue(search); // gõ tìm kiếm không làm khựng ô nhập
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useSessionState("history.filtersOpen", false);
   const [pendingDelete, setPendingDelete] = useState(null);
 
   const resetFilters = () => {
@@ -119,10 +120,10 @@ function ListView({ loading, entries, deleteEntry, activityById, moodByKey, mood
         onCancel={() => setPendingDelete(null)}
       />
 
-      <div className="lg:grid lg:grid-cols-[20rem_1fr] lg:gap-8 lg:items-start">
-        {/* Tìm kiếm + bộ lọc (cột cố định bên trái trên màn hình lớn) */}
-        <div className="lg:sticky lg:top-20">
-          <div className="relative mb-3">
+      {/* Bố cục dạng cột: thanh tìm kiếm + bộ lọc nằm trên, danh sách thẻ nằm dưới (lưới đều nhau trên màn hình lớn). */}
+      <div className="flex flex-col gap-4">
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-4 lg:items-start space-y-3 lg:space-y-0">
+          <div className="relative">
             <Search size={24} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
             <input
               value={search}
@@ -133,7 +134,7 @@ function ListView({ loading, entries, deleteEntry, activityById, moodByKey, mood
             />
           </div>
 
-          <div className="card-filled mb-4 overflow-hidden">
+          <div className="card-filled overflow-hidden">
             <button onClick={() => setFiltersOpen((v) => !v)} className="state w-full flex items-center gap-4 px-4 h-14" aria-expanded={filtersOpen}>
               <SlidersHorizontal size={24} className="text-on-surface-variant shrink-0" />
               <span className="flex-1 text-left t-title-small">{t("history.filters")}</span>
@@ -146,18 +147,20 @@ function ListView({ loading, entries, deleteEntry, activityById, moodByKey, mood
             </button>
 
             {filtersOpen && (
-              <div className="px-4 pb-4 pt-3 pop-in space-y-4">
-                <TextField as="select" label={t("history.period")} fieldBg="var(--md-surface-container-highest)" value={period} onChange={(e) => setPeriod(e.target.value)}>
-                  {PERIOD_KEYS.map((k) => (<option key={k} value={k}>{t(`history.period.${k}`)}</option>))}
-                </TextField>
-                <TextField as="select" label={t("history.mood")} fieldBg="var(--md-surface-container-highest)" value={moodFilter} onChange={(e) => setMoodFilter(e.target.value)}>
-                  <option value="all">{t("history.allMoods")}</option>
-                  {moods.map((m) => (<option key={m.key} value={m.key}>{m.emoji} {m.label}</option>))}
-                </TextField>
-                <TextField as="select" label={t("history.sort")} fieldBg="var(--md-surface-container-highest)" value={sort} onChange={(e) => setSort(e.target.value)}>
-                  {SORT_KEYS.map((k) => (<option key={k} value={k}>{t(`history.sort.${k}`)}</option>))}
-                </TextField>
-                <button type="button" onClick={resetFilters} disabled={activeFilterCount === 0} className="btn btn-tonal btn-block state justify-center">
+              <div className="px-4 pb-4 pt-3 pop-in">
+                <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-3">
+                  <TextField as="select" label={t("history.period")} fieldBg="var(--md-surface-container-highest)" value={period} onChange={(e) => setPeriod(e.target.value)}>
+                    {PERIOD_KEYS.map((k) => (<option key={k} value={k}>{t(`history.period.${k}`)}</option>))}
+                  </TextField>
+                  <TextField as="select" label={t("history.mood")} fieldBg="var(--md-surface-container-highest)" value={moodFilter} onChange={(e) => setMoodFilter(e.target.value)}>
+                    <option value="all">{t("history.allMoods")}</option>
+                    {moods.map((m) => (<option key={m.key} value={m.key}>{m.emoji} {m.label}</option>))}
+                  </TextField>
+                  <TextField as="select" label={t("history.sort")} fieldBg="var(--md-surface-container-highest)" value={sort} onChange={(e) => setSort(e.target.value)}>
+                    {SORT_KEYS.map((k) => (<option key={k} value={k}>{t(`history.sort.${k}`)}</option>))}
+                  </TextField>
+                </div>
+                <button type="button" onClick={resetFilters} disabled={activeFilterCount === 0} className="btn btn-tonal btn-block state justify-center mt-4">
                   <RotateCcw size={18} />
                   {t("history.resetFilters")}
                 </button>
@@ -177,7 +180,7 @@ function ListView({ loading, entries, deleteEntry, activityById, moodByKey, mood
           ) : filtered.length === 0 ? (
             <p className="t-body-medium text-on-surface-variant text-center py-16">{t("history.empty")}</p>
           ) : (
-            <ul className="space-y-2 pb-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-3 md:items-start">
+            <ul className="space-y-2 pb-4 md:space-y-0 md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-3 md:auto-rows-fr">
               {filtered.map((e) => (
                 <EntryCard
                   key={e.id}
@@ -203,9 +206,9 @@ function ListView({ loading, entries, deleteEntry, activityById, moodByKey, mood
 const EntryCard = memo(function EntryCard({ entry: e, mood: m, activityById, onEdit, onDelete, t, locale }) {
   const time = e.time ? new Date(e.time) : null;
   return (
-    <li className="cv-auto">
+    <li className="cv-auto h-full">
       <SwipeableRow onEdit={() => onEdit(e.id)} onDelete={() => onDelete(e)}>
-        <div className="bg-surface-container-highest p-4 rounded-m3-md">
+        <div className="bg-surface-container-highest p-4 rounded-m3-md h-full">
           <div className="flex items-center gap-4">
             <span className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0" style={{ background: m.color + "40" }}>
               {m?.emoji}
@@ -246,10 +249,10 @@ const EntryCard = memo(function EntryCard({ entry: e, mood: m, activityById, onE
   );
 });
 
-function CalendarView({ loading, entries, activityById, moodByKey }) {
+function CalendarView({ loading, entries, activityById, moodByKey, moods }) {
   const navigate = useNavigate();
   const { t, locale } = useI18n();
-  const [cursor, setCursor] = useState(new Date());
+  const [cursor, setCursor] = useSessionState("history.cursor", () => new Date(), { revive: reviveDate });
   const [selected, setSelected] = useState(null);
 
   // Mọi check-in của từng ngày (mới nhất trước); ô lịch hiển thị check-in mới nhất.
@@ -275,6 +278,11 @@ function CalendarView({ loading, entries, activityById, moodByKey }) {
   const closeSheet = useCallback(() => setSelected(null), []);
   const selectedList = selected ? byDate[selected] || [] : [];
   const monthLabel = cursor.toLocaleDateString(locale, { month: "long", year: "numeric" });
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const monthEntries = useMemo(
+    () => Object.entries(byDate).filter(([d]) => d.startsWith(monthPrefix)).map(([, list]) => list[0]),
+    [byDate, monthPrefix],
+  );
   const selectedLabel = selected
     ? new Date(`${selected}T00:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     : "";
@@ -282,7 +290,7 @@ function CalendarView({ loading, entries, activityById, moodByKey }) {
   if (loading) return <CalendarSkeleton />;
 
   return (
-    <div className="pb-4 pop-in max-w-xl">
+    <div className="pb-4 pop-in lg:grid lg:grid-cols-[minmax(0,36rem)_minmax(0,1fr)] lg:gap-10 lg:items-start">
       <BottomSheet open={!!selected} title={selectedLabel} onClose={closeSheet}>
         <p className="t-body-small text-on-surface-variant -mt-2 mb-4">{t("history.count", { n: selectedList.length })}</p>
         <ul className="space-y-3">
@@ -292,6 +300,7 @@ function CalendarView({ loading, entries, activityById, moodByKey }) {
         </ul>
       </BottomSheet>
 
+      <div>
       <div className="flex items-center justify-between mb-5">
         <button onClick={() => setCursor(new Date(year, month - 1, 1))} aria-label={t("history.prevMonth")} className="icon-btn state">
           <ChevronLeft size={24} />
@@ -328,6 +337,9 @@ function CalendarView({ loading, entries, activityById, moodByKey }) {
           );
         })}
       </div>
+      </div>
+
+      <MonthSummary entries={monthEntries} moods={moods} t={t} />
     </div>
   );
 }
@@ -370,5 +382,40 @@ function EntryDetail({ entry: e, mood: m, activityById, t, locale }) {
         <p className="t-body-medium text-on-surface-variant">{t("history.noActivities")}</p>
       )}
     </li>
+  );
+}
+
+// Tóm tắt tháng đang xem (hiện ở cột phải trên màn hình lớn, dưới lịch trên màn hình nhỏ).
+function MonthSummary({ entries, moods, t }) {
+  const avg = entries.length ? entries.reduce((a, e) => a + (e.score || 0), 0) / entries.length : null;
+  const counts = Object.fromEntries(moods.map((m) => [m.key, 0]));
+  for (const e of entries) counts[e.mood] = (counts[e.mood] || 0) + 1;
+  const max = Math.max(1, ...Object.values(counts));
+  return (
+    <aside className="mt-6 lg:mt-0 card-filled p-5 lg:sticky lg:top-20">
+      <p className="t-title-medium mb-4">{t("history.monthSummary")}</p>
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="rounded-m3-md bg-surface-container-highest px-4 py-3">
+          <p className="t-headline-small leading-none">{entries.length}</p>
+          <p className="t-label-medium text-on-surface-variant mt-1.5">{t("history.monthDays")}</p>
+        </div>
+        <div className="rounded-m3-md bg-surface-container-highest px-4 py-3">
+          <p className="t-headline-small leading-none">{avg != null ? `${avg.toFixed(1)}/5` : "—"}</p>
+          <p className="t-label-medium text-on-surface-variant mt-1.5">{t("history.monthAvg")}</p>
+        </div>
+      </div>
+      <ul className="space-y-2.5">
+        {moods.map((m) => (
+          <li key={m.key} className="flex items-center gap-3">
+            <span className="w-8 text-center text-xl shrink-0">{m.emoji}</span>
+            <span className="t-body-medium w-24 truncate shrink-0">{m.label}</span>
+            <span className="flex-1 h-2.5 rounded-full bg-surface-container-highest overflow-hidden">
+              <span className="block h-full rounded-full" style={{ width: `${(counts[m.key] / max) * 100}%`, background: m.color }} />
+            </span>
+            <span className="t-label-large text-on-surface-variant w-6 text-right shrink-0">{counts[m.key]}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
   );
 }

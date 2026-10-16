@@ -113,7 +113,7 @@ export default function CheckIn() {
   if (dataLoading) return <PageSkeleton variant="form" />
 
   return (
-    <div className="max-w-lg md:max-w-2xl mx-auto page-enter pb-28 md:pb-12">
+    <div className="max-w-lg md:max-w-2xl lg:max-w-5xl mx-auto page-enter pb-28 md:pb-12">
       <ConfirmDialog
         open={confirmSaveOpen}
         title={t('checkin.confirmTitle')}
@@ -124,14 +124,16 @@ export default function CheckIn() {
       />
 
       {/* Top app bar: nút quay lại + tiêu đề */}
-      <header className="sticky top-0 z-10 bg-surface flex items-center h-16 gap-1 px-1 md:px-4" style={{ paddingTop: 'var(--safe-top)' }}>
+      <header className="sticky top-0 z-10 bg-surface flex items-center h-16 gap-1 px-1 md:px-4 lg:px-8" style={{ paddingTop: 'var(--safe-top)' }}>
         <button onClick={() => navigate(-1)} aria-label={t('common.back')} className="icon-btn state text-on-surface">
           <ArrowLeft size={24} />
         </button>
         <h1 className="t-title-large ml-1">{existing ? t('checkin.editTitle') : t('checkin.title')}</h1>
       </header>
 
-      <div className="px-4 md:px-8 pt-2">
+      <div className="px-4 md:px-8 pt-2 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-stretch">
+        {/* Cột trái (PC): ngày giờ + tâm trạng. Điện thoại: xếp dọc không có khung. */}
+        <section className="lg:card-filled lg:p-8 lg:flex lg:flex-col">
         <p className="t-body-large text-on-surface-variant mb-6">{t('checkin.subtitle')}</p>
 
         <TextField
@@ -143,7 +145,7 @@ export default function CheckIn() {
           className="mb-8"
         />
 
-        <div className="flex justify-between md:justify-center md:gap-8 mb-9" role="radiogroup" aria-label={t('checkin.subtitle')}>
+        <div className="flex justify-between md:justify-center md:gap-8 lg:justify-between lg:gap-2 mb-9 lg:mb-2" role="radiogroup" aria-label={t('checkin.subtitle')}>
           {moods.map((m) => {
             const selected = mood === m.key
             return (
@@ -155,7 +157,7 @@ export default function CheckIn() {
                 className="flex flex-col items-center gap-2 group"
               >
                 <span
-                  className="state w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl transition-[transform,background-color,box-shadow] duration-200 ease-emphasized"
+                  className="state w-14 h-14 md:w-16 md:h-16 lg:w-[4.5rem] lg:h-[4.5rem] rounded-full flex items-center justify-center text-2xl md:text-3xl lg:text-4xl transition-[transform,background-color,box-shadow] duration-200 ease-emphasized"
                   style={{
                     background: selected ? m.color + '66' : 'rgb(var(--md-surface-container-highest))',
                     boxShadow: selected ? `0 0 0 2px ${m.color}` : 'none',
@@ -170,6 +172,10 @@ export default function CheckIn() {
           })}
         </div>
 
+        </section>
+
+        {/* Cột phải (PC): hoạt động + ghi chú */}
+        <section className="lg:card-filled lg:p-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
             <p className="t-title-medium">{t('checkin.activities')}</p>
@@ -214,26 +220,29 @@ export default function CheckIn() {
             rows={2}
           />
         </div>
+        </section>
 
-        <button
-          onClick={handleSave}
-          disabled={!mood || saving}
-          className="btn btn-filled btn-lg btn-block state"
-        >
-          {saving ? <Loader2 size={18} /> : <Check size={18} />}
-          {saving ? t('common.saving') : existing ? t('common.update') : t('checkin.save')}
-        </button>
+        <div className="lg:col-span-2 lg:flex lg:justify-end">
+          <button
+            onClick={handleSave}
+            disabled={!mood || saving}
+            className="btn btn-filled btn-lg btn-block lg:w-auto lg:min-w-[18rem] state"
+          >
+            {saving ? <Loader2 size={18} /> : <Check size={18} />}
+            {saving ? t('common.saving') : existing ? t('common.update') : t('checkin.save')}
+          </button>
+        </div>
       </div>
 
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label={t('common.scrollTop')}
-        className={`state fixed right-4 z-20 w-10 h-10 rounded-m3-md bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-all duration-200 ${
+        className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-all duration-200 ${
           showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
         }`}
         style={{ bottom: 'calc(var(--safe-bottom) + 1.5rem)' }}
       >
-        <ArrowUp size={24} />
+        <ArrowUp size={28} />
       </button>
     </div>
   )
