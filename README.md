@@ -4,109 +4,116 @@
 
 # Moody
 
-**Nhật ký tâm trạng hằng ngày — Daily mood journal**
+**Daily mood journal — Nhật ký tâm trạng hằng ngày**
 
-Check-in mỗi ngày, nhìn lại xu hướng cảm xúc và xuất báo cáo. Thiết kế theo **Material Design 3**, hỗ trợ **Tiếng Việt / English**, dùng được như một **PWA** trên cả điện thoại lẫn máy tính.
+Check in every day, look back at your emotional trends and export reports. Designed with **Material Design 3**, available in **English / Tiếng Việt**, and installable as a **PWA** on both phone and desktop.
+
+🌐 **English** · [Tiếng Việt](README.vi.md)
 
 ![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-5-646cff?logo=vite&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind-3-38bdf8?logo=tailwindcss&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-10-ffca28?logo=firebase&logoColor=black)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-informational)
-![License](https://img.shields.io/badge/license-private-lightgrey)
+![Open Source](https://img.shields.io/badge/open%20source-yes-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
 
 </div>
 
 ---
 
-## Mục lục
+## Table of contents
 
-- [Giới thiệu](#giới-thiệu)
-- [Ảnh chụp màn hình](#ảnh-chụp-màn-hình)
-- [Tính năng](#tính-năng)
-- [Cài đặt](#cài-đặt)
+- [About](#about)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Getting started](#getting-started)
 - [Tech stack](#tech-stack)
 - [Development](#development)
-- [Build & triển khai](#build--triển-khai)
-- [Cấu trúc project](#cấu-trúc-project)
+- [Build & deploy](#build--deploy)
+- [Project structure](#project-structure)
+- [Contributing](#contributing)
 - [License](#license)
 
-## Giới thiệu
+## About
 
-Moody giúp bạn ghi lại tâm trạng chỉ trong vài giây: chọn một trong 5 mức cảm xúc, gắn hoạt động trong ngày và thêm ghi chú. Sau đó xem lại bằng danh sách, lịch tháng và các biểu đồ thống kê, hoặc xuất thành báo cáo PDF/PNG.
+Moody lets you log your mood in seconds: pick one of 5 mood levels, tag the activities of your day and add a note. Review everything later as a list, a monthly calendar and statistics charts, or export it as a PDF/PNG report.
 
-- **Dùng ngay không cần tài khoản** — chế độ khách lưu dữ liệu trong `localStorage`; đăng nhập Google để đồng bộ lên Firestore.
-- **Mobile-first, nhưng không chỉ cho mobile** — điện thoại dùng thanh điều hướng dưới; laptop/PC dùng menu cố định bên trái và bố cục nhiều cột.
-- **Cá nhân hóa** — đổi màu chủ đề (toàn bộ bảng màu Material 3 được sinh lại từ màu bạn chọn), sáng/tối, cỡ chữ và ngôn ngữ.
+> **Moody is a public, open-source project.** You are free to read, use, fork and improve the code. Issues and pull requests are welcome.
 
-## Ảnh chụp màn hình
+- **Use it instantly, no account needed** — guest mode stores data in `localStorage`; sign in with Google to sync to Firestore.
+- **Mobile-first, but not mobile-only** — phones get a bottom navigation bar; laptops/desktops get a permanent left drawer and multi-column layouts.
+- **Personalized** — change the theme color (the full Material 3 palette is regenerated from your color), light/dark mode, font size and language.
 
-| Máy tính — Hôm nay | Máy tính — Thống kê |
+## Screenshots
+
+| Desktop — Today | Desktop — Statistics |
 |---|---|
-| ![Hôm nay](screenshots/image01.png) | ![Thống kê](screenshots/image02.png) |
+| ![Today](screenshots/image01.png) | ![Statistics](screenshots/image02.png) |
 
-| Máy tính — Lịch sử | Máy tính — Cài đặt (đổi màu chủ đề) |
+| Desktop — History | Desktop — Settings (theme color) |
 |---|---|
-| ![Lịch sử](screenshots/image03.png) | ![Cài đặt](screenshots/image04.png) |
+| ![History](screenshots/image03.png) | ![Settings](screenshots/image04.png) |
 
-| Điện thoại — Hôm nay | Điện thoại — Check-in | Điện thoại — Thống kê (tối, EN) | Điện thoại — Lịch sử (tối, EN) |
+| Mobile — Today | Mobile — Check-in | Mobile — Statistics (dark, EN) | Mobile — History (dark, EN) |
 |---|---|---|---|
 | <img src="screenshots/image05.png" width="200" /> | <img src="screenshots/image06.png" width="200" /> | <img src="screenshots/image07.png" width="200" /> | <img src="screenshots/image08.png" width="200" /> |
 
-## Tính năng
+## Features
 
-| Khu vực | Mô tả |
+| Area | Description |
 |---|---|
-| **Hôm nay** | Lời chào, trạng thái check-in, dải 7 ngày, chuỗi ngày liên tiếp, mood trung bình tuần và các check-in gần đây |
-| **Check-in** | Chọn ngày giờ, 1 trong 5 mức tâm trạng, nhiều hoạt động (chip), ghi chú tự giãn dòng; sửa lại bất kỳ lúc nào |
-| **Lịch sử** | Dạng *Danh sách* (tìm kiếm, lọc thời gian/cảm xúc, sắp xếp, vuốt phải để sửa / vuốt trái để xóa) và dạng *Lịch tháng* (chạm ngày trống để tạo check-in) |
-| **Thống kê** | Theo Ngày / Tuần / Tháng / Năm: xu hướng mood, phân bố & tỉ lệ cảm xúc (cột + tròn), hoạt động thường gặp |
-| **Xuất báo cáo** | PDF hoặc ảnh PNG gồm chỉ số tổng quan, xu hướng, phân bố cảm xúc, **biểu đồ tròn tỉ lệ cảm xúc** và **biểu đồ phân bổ hoạt động** |
-| **Quản lý hoạt động** | Thêm / sửa / xóa, kéo-thả hoặc dùng mũi tên để sắp xếp |
-| **Quản lý tâm trạng** | Đổi emoji và tên hiển thị của 5 mức tâm trạng, khôi phục mặc định |
-| **Cài đặt** | Giao diện sáng/tối/hệ thống, **màu chủ đề**, cỡ chữ, **ngôn ngữ (VI/EN)**, cài đặt PWA, xuất/xóa dữ liệu |
+| **Today** | Greeting, check-in status, 7-day strip, current streak, weekly average mood and recent check-ins |
+| **Check-in** | Pick date and time, 1 of 5 moods, multiple activities (chips) and an auto-growing note; edit anytime |
+| **History** | *List* view (search, filter by period/mood, sort, swipe right to edit / swipe left to delete) and *monthly Calendar* view (tap an empty day to create a check-in) |
+| **Statistics** | By Day / Week / Month / Year: mood trend, mood distribution & share (bar + pie), most frequent activities |
+| **Export report** | PDF or PNG with overview metrics, trend, mood distribution, a **mood share pie chart** and an **activity distribution chart** |
+| **Manage activities** | Add / edit / delete, reorder via drag-and-drop or arrow buttons |
+| **Manage moods** | Change the emoji and display name of the 5 mood levels, restore defaults |
+| **Settings** | Light/dark/system theme, **theme color**, font size, **language (EN/VI)**, PWA install, export/delete data |
 
-Điểm nhấn kỹ thuật:
+Highlights:
 
-- **Material Design 3** đầy đủ: color roles, shape, elevation, state layer, top app bar, navigation bar/drawer, FAB, dialog, snackbar, segmented button, switch, chip, outlined text field.
-- **Màu chủ đề tùy chỉnh**: chọn màu gợi ý hoặc bất kỳ màu nào; bảng màu sáng/tối được sinh bằng [`@material/material-color-utilities`](https://github.com/material-foundation/material-color-utilities) và áp dụng trước khi vẽ trang (không bị nháy màu). Màu mặc định là xanh dương (seed `#769CDF`).
-- **Responsive**: điện thoại → tablet → laptop → màn hình lớn.
-- **Hiệu năng**: code-splitting theo trang, tách chunk `react` / `firebase` / `charts`, thư viện PDF chỉ nạp khi xuất báo cáo, skeleton loading đúng hình dạng nội dung.
-- **SEO & chia sẻ**: meta description, canonical, Open Graph, Twitter Card, JSON-LD, `robots.txt`, ảnh xem trước 1200×630.
-- **PWA**: cài đặt như app, hoạt động offline với service worker.
+- **Full Material Design 3**: color roles, shape, elevation, state layers, top app bar, navigation bar/drawer, FAB, dialog, snackbar, segmented button, switch, chip, outlined text field.
+- **Custom theme color**: pick a suggested color or any color you like; light/dark palettes are generated with [`@material/material-color-utilities`](https://github.com/material-foundation/material-color-utilities) and applied before first paint (no color flash). The default is blue (seed `#769CDF`).
+- **Responsive**: phone → tablet → laptop → large screens.
+- **Performance**: per-route code-splitting, separate `react` / `firebase` / `charts` chunks, PDF libraries loaded only when exporting, content-shaped skeleton loading.
+- **SEO & social sharing**: meta description, canonical, Open Graph, Twitter Card, JSON-LD, `robots.txt`, 1200×630 preview image.
+- **PWA**: installable, works offline via a service worker.
 
-## Cài đặt
+## Getting started
 
-Yêu cầu: **Node.js ≥ 18** và npm.
+Requirements: **Node.js ≥ 18** and npm.
 
 ```bash
 git clone <repo-url> moody
 cd moody
 npm install
-cp .env.example .env     # rồi điền thông tin Firebase (xem bên dưới)
+cp .env.example .env     # then fill in your Firebase config (see below)
 npm run dev
 ```
 
-Mở `http://localhost:5173`. **Không cấu hình Firebase vẫn chạy được** — ứng dụng dùng chế độ khách (dữ liệu lưu cục bộ).
+Open `http://localhost:5173`. **It runs without Firebase configured** — the app falls back to guest mode (data stored locally).
 
-### Cấu hình Firebase (tùy chọn)
+### Firebase setup (optional)
 
-1. Tạo project tại [Firebase Console](https://console.firebase.google.com).
-2. **Authentication → Sign-in method** → bật **Google**.
-3. **Firestore Database** → tạo database.
-4. **Project settings → Your apps** → tạo Web app và copy từng giá trị vào `.env`:
+1. Create a project in the [Firebase Console](https://console.firebase.google.com).
+2. **Authentication → Sign-in method** → enable **Google**.
+3. **Firestore Database** → create a database.
+4. **Project settings → Your apps** → create a Web app and copy each value into `.env`:
 
-   | Biến | Ý nghĩa |
+   | Variable | Meaning |
    |---|---|
-   | `VITE_FIREBASE_API_KEY` | API key của Web app |
+   | `VITE_FIREBASE_API_KEY` | Web app API key |
    | `VITE_FIREBASE_AUTH_DOMAIN` | `your-project.firebaseapp.com` |
-   | `VITE_FIREBASE_PROJECT_ID` | ID project |
+   | `VITE_FIREBASE_PROJECT_ID` | Project ID |
    | `VITE_FIREBASE_STORAGE_BUCKET` | `your-project.appspot.com` |
    | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Sender ID |
    | `VITE_FIREBASE_APP_ID` | App ID |
-   | `VITE_SITE_URL` | URL triển khai (không có `/` cuối) — dùng cho canonical / Open Graph / Twitter Card |
+   | `VITE_SITE_URL` | Deployed URL (no trailing `/`) — used for canonical / Open Graph / Twitter Card |
 
-5. Đặt **Firestore Security Rules** để mỗi người chỉ đọc/ghi dữ liệu của mình:
+5. Set **Firestore Security Rules** so each user can only read/write their own data:
 
    ```
    rules_version = '2';
@@ -119,56 +126,56 @@ Mở `http://localhost:5173`. **Không cấu hình Firebase vẫn chạy đượ
    }
    ```
 
-`.env` đã nằm trong `.gitignore`.
+`.env` is already in `.gitignore`. **Never commit your own Firebase keys or secrets** to a public repository.
 
 ## Tech stack
 
-| Mảng | Công nghệ |
+| Area | Technology |
 |---|---|
 | UI | React 18, React Router 6 (`HashRouter`) |
 | Build | Vite 5, `vite-plugin-pwa` (Workbox) |
-| Styling | Tailwind CSS 3 + CSS variables theo Material Design 3 |
-| Màu động | `@material/material-color-utilities` |
-| Icon & font | `react-icons` (Material Design icons), Roboto (`@fontsource/roboto`, tự host, có subset tiếng Việt) |
+| Styling | Tailwind CSS 3 + Material Design 3 CSS variables |
+| Dynamic color | `@material/material-color-utilities` |
+| Icons & font | `react-icons` (Material Design icons), Roboto (`@fontsource/roboto`, self-hosted, Vietnamese subset included) |
 | Backend | Firebase Authentication (Google) + Cloud Firestore |
-| Biểu đồ | Recharts |
-| Báo cáo | html2canvas + jsPDF (nạp khi cần) |
-| i18n | Bộ dịch nhẹ tự viết (`src/i18n`) — Tiếng Việt & English |
+| Charts | Recharts |
+| Reports | html2canvas + jsPDF (loaded on demand) |
+| i18n | Lightweight custom translator (`src/i18n`) — English & Tiếng Việt |
 
 ## Development
 
-| Lệnh | Mô tả |
+| Command | Description |
 |---|---|
-| `npm run dev` | Chạy dev server (HMR) |
-| `npm run build` | Build production vào `dist/` |
-| `npm run preview` | Chạy thử bản build |
+| `npm run dev` | Start the dev server (HMR) |
+| `npm run build` | Production build into `dist/` |
+| `npm run preview` | Preview the production build |
 
-Một số điểm cần biết khi phát triển:
+Things worth knowing:
 
-- **Đổi màu mặc định**: sửa các biến `--md-*` (sáng + tối) trong [`src/index.css`](src/index.css) — có thể xuất bộ mới từ [Material Theme Builder](https://material-foundation.github.io/material-theme-builder/) — cùng `DEFAULT_SEED` trong [`src/lib/theme.js`](src/lib/theme.js), `theme_color` trong `vite.config.js` và icon trong `public/`.
-- **Thêm ngôn ngữ / chuỗi mới**: thêm khóa vào `src/i18n/vi.js` và `src/i18n/en.js`, dùng `const { t } = useI18n()` → `t('khoa')`. Khóa thiếu sẽ rơi về tiếng Việt.
-- **Biểu đồ** dùng màu literal đọc từ CSS variable hiện hành (`readRole()` trong `theme.js`) vì SVG của một số trình duyệt không resolve `var()` ổn định.
-- **Ngày "hôm nay"** luôn tính theo giờ địa phương của thiết bị (không dùng `toISOString()` theo UTC).
+- **Changing the default color**: edit the `--md-*` variables (light + dark) in [`src/index.css`](src/index.css) — you can export a new set from [Material Theme Builder](https://material-foundation.github.io/material-theme-builder/) — together with `DEFAULT_SEED` in [`src/lib/theme.js`](src/lib/theme.js), `theme_color` in `vite.config.js` and the icons in `public/`.
+- **Adding a language / new strings**: add the key to `src/i18n/vi.js` and `src/i18n/en.js`, then use `const { t } = useI18n()` → `t('key')`. Missing keys fall back to Vietnamese.
+- **Charts** use literal colors read from the current CSS variables (`readRole()` in `theme.js`) because SVG in some browsers doesn't resolve `var()` reliably.
+- **"Today"** is always computed in the device's local time zone (never UTC via `toISOString()`).
 
-## Build & triển khai
+## Build & deploy
 
 ```bash
 npm run build
 ```
 
-Deploy thư mục `dist/` lên bất kỳ static host nào (Firebase Hosting, Vercel, Netlify, Cloudflare Pages…). Vì dùng `HashRouter` nên không cần cấu hình rewrite cho SPA. Nhớ đặt `VITE_SITE_URL` trước khi build để thẻ canonical / Open Graph trỏ đúng domain.
+Deploy the `dist/` folder to any static host (Firebase Hosting, Vercel, Netlify, Cloudflare Pages…). Because the app uses `HashRouter`, no SPA rewrite rules are needed. Set `VITE_SITE_URL` before building so canonical / Open Graph tags point to the right domain.
 
-## Cấu trúc project
+## Project structure
 
 ```
-├── index.html                  # Meta SEO / Open Graph / Twitter / JSON-LD, màn hình khởi động
-├── vite.config.js              # Vite + PWA manifest + tách chunk
-├── tailwind.config.js          # Ánh xạ color roles Material 3, shape, elevation
-├── public/                     # favicon, icon PWA, og-image, robots.txt
-├── screenshots/                # Ảnh dùng trong README (image01 … image08)
+├── index.html                  # SEO / Open Graph / Twitter / JSON-LD meta, boot screen
+├── vite.config.js              # Vite + PWA manifest + chunk splitting
+├── tailwind.config.js          # Material 3 color roles, shape, elevation mapping
+├── public/                     # favicon, PWA icons, og-image, robots.txt
+├── screenshots/                # Images used in the README (image01 … image08)
 └── src/
     ├── App.jsx · main.jsx
-    ├── index.css               # Color roles (--md-*), typography, state layer, component class
+    ├── index.css               # Color roles (--md-*), typography, state layers, component classes
     ├── i18n/                   # vi.js · en.js · index.jsx (I18nProvider, useI18n)
     ├── context/                # Auth, MoodEntries, Activities, Moods, Toast
     ├── hooks/                  # useMoodEntries, useActivities, useMoods, useInstallPrompt, useIsDark
@@ -179,8 +186,21 @@ Deploy thư mục `dist/` lên bất kỳ static host nào (Firebase Hosting, Ve
                                 # ManageActivities, ManageMoods
 ```
 
-**Mô hình dữ liệu** — `users/{uid}/entries/{id}`: `date` (`YYYY-MM-DD`), `time` (ISO), `mood` (`great|good|okay|sad|angry`), `score` (1–5), `activities[]`, `note`. Hoạt động và tên/emoji tâm trạng tùy chỉnh nằm ở `users/{uid}/meta/activities` và `users/{uid}/meta/moods`; ở chế độ khách mọi thứ lưu trong `localStorage`.
+**Data model** — `users/{uid}/entries/{id}`: `date` (`YYYY-MM-DD`), `time` (ISO), `mood` (`great|good|okay|sad|angry`), `score` (1–5), `activities[]`, `note`. Custom activities and mood names/emojis live in `users/{uid}/meta/activities` and `users/{uid}/meta/moods`; in guest mode everything is stored in `localStorage`.
+
+## Contributing
+
+Moody is open source and contributions are welcome:
+
+1. Fork the repository and create a branch: `git checkout -b feat/your-feature`.
+2. Make your changes and make sure `npm run build` passes.
+3. If you add UI text, add it to **both** `src/i18n/en.js` and `src/i18n/vi.js`.
+4. Commit and open a pull request describing what changed and why.
+
+Found a bug or have an idea? Open an issue.
 
 ## License
 
-Dự án **private** — bảo lưu mọi quyền © 2026 minhtrong67. Không sao chép, phân phối hoặc sử dụng lại khi chưa có sự cho phép bằng văn bản. (Nếu muốn mở mã nguồn, thêm file `LICENSE` — ví dụ MIT — và đổi badge ở đầu README.)
+Released as open source under the **MIT License** © 2026 minhtrong67. You may use, copy, modify and distribute this project, provided the copyright notice and license text are included.
+
+> Maintainer note: add a `LICENSE` file containing the MIT text at the repository root so GitHub recognizes the license.
