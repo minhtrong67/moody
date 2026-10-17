@@ -6,10 +6,7 @@ import {
   Smartphone,
   Download,
   Upload,
-<<<<<<< HEAD
   ChevronDown,
-=======
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
   LogOut,
   Heart,
   Check,
@@ -22,11 +19,8 @@ import { START_PAGES, getStartPage, setStartPage } from "../lib/startPage";
 import {
   FORMATS,
   buildExportBlob,
-<<<<<<< HEAD
   buildExportAllBlob,
   IMPORT_EXTS,
-=======
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
   downloadBlob,
   entriesToRows,
   activitiesToRows,
@@ -38,10 +32,7 @@ import {
 } from "../lib/dataTransfer";
 import { DEFAULT_ACTIVITIES } from "../lib/moodConfig";
 import { useToast } from "../context/ToastContext";
-<<<<<<< HEAD
 import { useSessionState } from "../hooks/useSessionState";
-=======
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
 import { useActivities } from "../hooks/useActivities";
 import { useMoods } from "../hooks/useMoods";
 import { useAuth } from "../context/AuthContext";
@@ -77,12 +68,8 @@ export default function Settings() {
   const [fontScale, setFontScaleState] = useState(getStoredFontScale());
   const [seed, setSeedState] = useState(getStoredSeed());
   const [startPage, setStartPageState] = useState(getStartPage());
-<<<<<<< HEAD
   const [format, setFormat] = useSessionState("settings.format", "csv");
   const [dataOpen, setDataOpen] = useSessionState("settings.dataOpen", false);
-=======
-  const [format, setFormat] = useState("csv");
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
   const [busy, setBusy] = useState(null);
   const fileRef = useRef(null);
   const importTarget = useRef(null);
@@ -116,7 +103,6 @@ export default function Settings() {
 
   const activityById = Object.fromEntries(activities.map((a) => [a.id, a]));
 
-<<<<<<< HEAD
   const rowsFor = {
     entries: () => entriesToRows(entries, activityById),
     activities: () => activitiesToRows(activities),
@@ -125,15 +111,6 @@ export default function Settings() {
 
   async function exportDataset(dataset) {
     const rows = rowsFor[dataset]();
-=======
-  async function exportDataset(dataset) {
-    const rows =
-      dataset === "entries"
-        ? entriesToRows(entries, activityById)
-        : dataset === "activities"
-          ? activitiesToRows(activities)
-          : moodsToRows(moods);
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
     if (rows.length === 0) return showToast(t("settings.exportEmpty"));
     setBusy(`export:${dataset}`);
     try {
@@ -148,7 +125,6 @@ export default function Settings() {
     }
   }
 
-<<<<<<< HEAD
   // Xuất toàn bộ dữ liệu trong một lần (json: 1 file, xlsx: 1 file 3 sheet, csv: 1 file .zip chứa 3 csv).
   async function exportAll() {
     const all = { entries: rowsFor.entries(), activities: rowsFor.activities(), moods: rowsFor.moods() };
@@ -220,47 +196,6 @@ export default function Settings() {
       showToast(t("settings.importDone", total));
     } catch (err) {
       const known = ["format", "size", "invalid", "mismatch"].includes(err?.message) ? err.message : "read";
-=======
-  function pickImport(dataset) {
-    importTarget.current = dataset;
-    fileRef.current?.click();
-  }
-
-  async function onFileChosen(e) {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // cho phép chọn lại cùng một file
-    const dataset = importTarget.current;
-    if (!file || !dataset) return;
-    setBusy(`import:${dataset}`);
-    try {
-      const raw = await parseImportFile(file);
-      let parsed;
-      if (dataset === "entries") parsed = normalizeEntries(raw, { moods, activities });
-      else if (dataset === "activities")
-        parsed = normalizeActivities(raw, DEFAULT_ACTIVITIES.map((a) => a.id));
-      else parsed = normalizeMoods(raw, moods.map((m) => m.key));
-      if (parsed.items.length === 0) return showToast(t("settings.importNothing"));
-      let result;
-      try {
-        result =
-          dataset === "entries"
-            ? await importEntries(parsed.items)
-            : dataset === "activities"
-              ? await importActivities(parsed.items)
-              : await importMoods(parsed.items);
-      } catch {
-        return showToast(t("settings.importErr.write"));
-      }
-      showToast(
-        t("settings.importDone", {
-          added: result.added ?? 0,
-          updated: result.updated ?? 0,
-          skipped: parsed.skipped,
-        }),
-      );
-    } catch (err) {
-      const known = ["format", "size", "invalid"].includes(err?.message) ? err.message : "read";
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
       showToast(t(`settings.importErr.${known}`));
     } finally {
       setBusy(null);
@@ -415,28 +350,6 @@ export default function Settings() {
                 {t("settings.langAutoHint")}
               </p>
             )}
-<<<<<<< HEAD
-=======
-          </SettingGroup>
-
-          <SettingGroup title={t("settings.startPage")}>
-            <p className="t-body-medium text-on-surface-variant mb-3 px-1">
-              {t("settings.startPageText")}
-            </p>
-            <TextField
-              as="select"
-              label={t("settings.startPage")}
-              fieldBg="var(--md-surface-container-highest)"
-              value={startPage}
-              onChange={(e) => handleStartPage(e.target.value)}
-            >
-              {START_PAGES.map((p) => (
-                <option key={p.path} value={p.path}>
-                  {t(p.key)}
-                </option>
-              ))}
-            </TextField>
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
           </SettingGroup>
 
         </div>
@@ -463,7 +376,6 @@ export default function Settings() {
             </div>
           </SettingGroup>
 
-<<<<<<< HEAD
           <SettingGroup title={t("settings.startPage")}>
             <p className="t-body-medium text-on-surface-variant mb-3 px-1">
               {t("settings.startPageText")}
@@ -573,52 +485,6 @@ export default function Settings() {
                   </div>
                 </div>
               )}
-=======
-          <SettingGroup title={t("settings.exportImport")}>
-            <p className="t-body-medium text-on-surface-variant mb-3 px-1">
-              {t("settings.dataHint")}
-            </p>
-            <p className="t-label-medium text-on-surface-variant mb-2 px-1">
-              {t("settings.dataFormat")}
-            </p>
-            <SegmentedButton
-              className="mb-4"
-              value={format}
-              onChange={setFormat}
-              options={FORMATS.map((f) => ({ key: f, label: `.${f}` }))}
-            />
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv,.xlsx,.json"
-              onChange={onFileChosen}
-              className="hidden"
-            />
-            <div className="space-y-2">
-              {["entries", "activities", "moods"].map((ds) => (
-                <div key={ds} className="card-filled p-4">
-                  <p className="t-title-small mb-3">{t(`settings.dataset.${ds}`)}</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => exportDataset(ds)}
-                      disabled={!!busy}
-                      className="btn btn-outlined state flex-1 justify-center"
-                    >
-                      <Download size={18} />
-                      {t("settings.exportBtn")}
-                    </button>
-                    <button
-                      onClick={() => pickImport(ds)}
-                      disabled={!!busy}
-                      className="btn btn-tonal state flex-1 justify-center"
-                    >
-                      <Upload size={18} />
-                      {t("settings.importBtn")}
-                    </button>
-                  </div>
-                </div>
-              ))}
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
             </div>
           </SettingGroup>
 

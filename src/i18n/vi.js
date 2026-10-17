@@ -205,7 +205,6 @@ export default {
   'settings.importErr.invalid': 'Nội dung file JSON không đúng cấu trúc.',
   'settings.importErr.read': 'Không đọc được file. Hãy kiểm tra lại định dạng.',
   'settings.importErr.write': 'Không thể lưu dữ liệu đã nhập. Vui lòng thử lại.',
-<<<<<<< HEAD
   'history.monthSummary': 'Tóm tắt tháng này',
   'history.monthDays': 'Ngày đã check-in',
   'history.monthAvg': 'Mood trung bình',
@@ -236,8 +235,6 @@ export default {
   'login.footer': 'Moody — nhật ký tâm trạng cá nhân',
   'checkin.moodTitle': 'Hôm nay bạn thế nào?',
   'checkin.detailsTitle': 'Chi tiết',
-=======
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
   'settings.credit': 'Được phát triển bởi {author}, với sự hỗ trợ của Claude.',
 
   'manage.emoji': 'Emoji',

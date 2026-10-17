@@ -106,7 +106,6 @@ function tableToObjects(table) {
 
 // ---------- Xuất ----------
 
-<<<<<<< HEAD
 async function sheetsToBlob(sheets) {
   const { default: writeExcelFile } = await import('write-excel-file/universal')
   return writeExcelFile(
@@ -146,8 +145,6 @@ export async function buildExportAllBlob(format, all) {
   return { blob: new Blob([zipSync(files)], { type: 'application/zip' }), ext: 'zip' }
 }
 
-=======
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
 export async function buildExportBlob(format, dataset, rows) {
   const headers = DATASETS[dataset].headers
   if (format === 'json') {
@@ -157,23 +154,7 @@ export async function buildExportBlob(format, dataset, rows) {
   if (format === 'csv') {
     return new Blob([toCsv(headers, rows)], { type: 'text/csv;charset=utf-8' })
   }
-<<<<<<< HEAD
   return sheetsToBlob([{ name: dataset, headers, rows }])
-=======
-  const { default: writeExcelFile } = await import('write-excel-file/universal')
-  const sheetData = [
-    headers.map((h) => ({ value: h, fontWeight: 'bold' })),
-    ...rows.map((r) =>
-      headers.map((h) => {
-        const v = r[h]
-        if (typeof v === 'number') return { value: v, type: Number }
-        if (typeof v === 'boolean') return { value: v, type: Boolean }
-        return { value: String(escapeCell(v ?? '')), type: String }
-      })
-    ),
-  ]
-  return writeExcelFile(sheetData).toBlob()
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
 }
 
 export function downloadBlob(blob, filename) {
@@ -191,7 +172,6 @@ export function downloadBlob(blob, filename) {
 
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024
 
-<<<<<<< HEAD
 export const IMPORT_EXTS = ['csv', 'xlsx', 'json', 'zip']
 
 export function formatOfFile(file) {
@@ -247,31 +227,6 @@ export async function parseImportFile(file, only = null) {
     return { [only]: out[only] }
   }
   return Object.fromEntries(found.map((n) => [n, out[n]]))
-=======
-export function formatOfFile(file) {
-  const ext = file.name.split('.').pop().toLowerCase()
-  return FORMATS.includes(ext) ? ext : null
-}
-
-// Đọc file → mảng object thô (chưa kiểm tra nội dung).
-export async function parseImportFile(file) {
-  const format = formatOfFile(file)
-  if (!format) throw new Error('format')
-  if (file.size > MAX_IMPORT_BYTES) throw new Error('size')
-  try {
-    if (format === 'json') {
-      const json = JSON.parse(await file.text())
-      const list = Array.isArray(json) ? json : json?.data
-      if (!Array.isArray(list)) throw new Error('invalid')
-      return list.filter((x) => x && typeof x === 'object' && !Array.isArray(x))
-    }
-    if (format === 'csv') return tableToObjects(parseCsv(await file.text()))
-    const { readSheet } = await import('read-excel-file/universal')
-    return tableToObjects(await readSheet(file))
-  } catch (err) {
-    throw new Error(err?.message === 'invalid' ? 'invalid' : 'read')
-  }
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
 }
 
 const str = (v) => (v === null || v === undefined ? '' : String(v).trim())
