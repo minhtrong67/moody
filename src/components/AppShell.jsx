@@ -104,9 +104,8 @@ export default function AppShell() {
       <div className="flex-1 min-w-0 flex flex-col min-h-[100dvh]">
         {/* Top app bar — đổi sang surface-container + elevation khi nội dung cuộn dưới nó */}
         <header
-          className={`sticky top-0 z-10 flex items-center h-16 gap-1 px-1 md:px-4 transition-[background-color,box-shadow] duration-200 ${
-            scrolled ? 'bg-surface-container shadow-elev-2' : 'bg-surface'
-          }`}
+          className={`sticky top-0 z-10 flex items-center h-16 gap-1 px-1 md:px-4 transition-[background-color,box-shadow] duration-200 ${scrolled ? 'bg-surface-container shadow-elev-2' : 'bg-surface'
+            }`}
           style={{ top: 'var(--safe-top)' }}
         >
           <button onClick={() => setDrawerOpen(true)} aria-label={t('nav.openMenu')} className="icon-btn state text-on-surface md:hidden">
@@ -127,15 +126,8 @@ export default function AppShell() {
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label={t('common.scrollTop')}
-<<<<<<< HEAD
-        className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 md:bottom-6 ${
-          showAddFab ? 'bottom-[calc(var(--safe-bottom)+11rem)]' : 'bottom-[calc(var(--safe-bottom)+6.5rem)]'
-        } ${
-=======
-        className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 bottom-[calc(var(--safe-bottom)+11rem)] md:bottom-6 ${
->>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
-          showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
-        }`}
+        className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 bottom-[calc(var(--safe-bottom)+11rem)] md:bottom-6 ${showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
+          }`}
       >
         <ArrowUp size={28} />
       </button>
@@ -171,9 +163,8 @@ function NavTab({ to, label, icon: Icon, activeIcon: ActiveIcon, end }) {
         return (
           <>
             <span
-              className={`state relative flex items-center justify-center h-8 w-16 rounded-full transition-colors duration-300 ease-emphasized ${
-                isActive ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant'
-              }`}
+              className={`state relative flex items-center justify-center h-8 w-16 rounded-full transition-colors duration-300 ease-emphasized ${isActive ? 'bg-secondary-container text-on-secondary-container' : 'text-on-surface-variant'
+                }`}
             >
               <I size={24} />
             </span>
