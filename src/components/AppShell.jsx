@@ -127,9 +127,13 @@ export default function AppShell() {
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label={t('common.scrollTop')}
+<<<<<<< HEAD
         className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 md:bottom-6 ${
           showAddFab ? 'bottom-[calc(var(--safe-bottom)+11rem)]' : 'bottom-[calc(var(--safe-bottom)+6.5rem)]'
         } ${
+=======
+        className={`state fixed right-4 md:right-6 z-20 w-14 h-14 rounded-m3-lg bg-surface-container-high text-primary shadow-elev-3 flex items-center justify-center transition-[opacity,transform] duration-200 bottom-[calc(var(--safe-bottom)+11rem)] md:bottom-6 ${
+>>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
           showScrollTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
         }`}
       >

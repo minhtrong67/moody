@@ -147,6 +147,7 @@ function ListView({ loading, entries, deleteEntry, activityById, moodByKey, mood
             </button>
 
             {filtersOpen && (
+<<<<<<< HEAD
               <div className="px-4 pb-4 pt-3 pop-in">
                 <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-3">
                   <TextField as="select" label={t("history.period")} fieldBg="var(--md-surface-container-highest)" value={period} onChange={(e) => setPeriod(e.target.value)}>
@@ -161,6 +162,20 @@ function ListView({ loading, entries, deleteEntry, activityById, moodByKey, mood
                   </TextField>
                 </div>
                 <button type="button" onClick={resetFilters} disabled={activeFilterCount === 0} className="btn btn-tonal btn-block state justify-center mt-4">
+=======
+              <div className="px-4 pb-4 pt-3 pop-in space-y-4">
+                <TextField as="select" label={t("history.period")} fieldBg="var(--md-surface-container-highest)" value={period} onChange={(e) => setPeriod(e.target.value)}>
+                  {PERIOD_KEYS.map((k) => (<option key={k} value={k}>{t(`history.period.${k}`)}</option>))}
+                </TextField>
+                <TextField as="select" label={t("history.mood")} fieldBg="var(--md-surface-container-highest)" value={moodFilter} onChange={(e) => setMoodFilter(e.target.value)}>
+                  <option value="all">{t("history.allMoods")}</option>
+                  {moods.map((m) => (<option key={m.key} value={m.key}>{m.emoji} {m.label}</option>))}
+                </TextField>
+                <TextField as="select" label={t("history.sort")} fieldBg="var(--md-surface-container-highest)" value={sort} onChange={(e) => setSort(e.target.value)}>
+                  {SORT_KEYS.map((k) => (<option key={k} value={k}>{t(`history.sort.${k}`)}</option>))}
+                </TextField>
+                <button type="button" onClick={resetFilters} disabled={activeFilterCount === 0} className="btn btn-tonal btn-block state justify-center">
+>>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
                   <RotateCcw size={18} />
                   {t("history.resetFilters")}
                 </button>
@@ -278,11 +293,14 @@ function CalendarView({ loading, entries, activityById, moodByKey, moods }) {
   const closeSheet = useCallback(() => setSelected(null), []);
   const selectedList = selected ? byDate[selected] || [] : [];
   const monthLabel = cursor.toLocaleDateString(locale, { month: "long", year: "numeric" });
+<<<<<<< HEAD
   const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
   const monthEntries = useMemo(
     () => Object.entries(byDate).filter(([d]) => d.startsWith(monthPrefix)).map(([, list]) => list[0]),
     [byDate, monthPrefix],
   );
+=======
+>>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
   const selectedLabel = selected
     ? new Date(`${selected}T00:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     : "";
@@ -290,7 +308,11 @@ function CalendarView({ loading, entries, activityById, moodByKey, moods }) {
   if (loading) return <CalendarSkeleton />;
 
   return (
+<<<<<<< HEAD
     <div className="pb-4 pop-in lg:grid lg:grid-cols-[minmax(0,36rem)_minmax(0,1fr)] lg:gap-10 lg:items-start">
+=======
+    <div className="pb-4 pop-in max-w-xl">
+>>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
       <BottomSheet open={!!selected} title={selectedLabel} onClose={closeSheet}>
         <p className="t-body-small text-on-surface-variant -mt-2 mb-4">{t("history.count", { n: selectedList.length })}</p>
         <ul className="space-y-3">
@@ -300,7 +322,10 @@ function CalendarView({ loading, entries, activityById, moodByKey, moods }) {
         </ul>
       </BottomSheet>
 
+<<<<<<< HEAD
       <div>
+=======
+>>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
       <div className="flex items-center justify-between mb-5">
         <button onClick={() => setCursor(new Date(year, month - 1, 1))} aria-label={t("history.prevMonth")} className="icon-btn state">
           <ChevronLeft size={24} />
@@ -317,6 +342,28 @@ function CalendarView({ loading, entries, activityById, moodByKey, moods }) {
         {weekdays.map((w) => (
           <div key={w} className="text-center t-label-medium text-on-surface-variant py-1">{w}</div>
         ))}
+<<<<<<< HEAD
+=======
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((d, i) => {
+          if (!d) return <div key={i} />;
+          const iso = isoFor(d);
+          const entry = byDate[iso]?.[0];
+          const m = entry ? moodByKey(entry.mood) : null;
+          return (
+            <button
+              key={i}
+              onClick={() => handleDayClick(iso)}
+              className="state aspect-square rounded-full flex flex-col items-center justify-center text-base gap-0.5"
+              style={{ background: m ? m.color + "40" : "transparent" }}
+            >
+              {m ? <span>{m.emoji}</span> : <span className="t-body-medium">{d}</span>}
+            </button>
+          );
+        })}
+>>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
       </div>
 
       <div className="grid grid-cols-7 gap-1">
@@ -384,6 +431,7 @@ function EntryDetail({ entry: e, mood: m, activityById, t, locale }) {
     </li>
   );
 }
+<<<<<<< HEAD
 
 // Tóm tắt tháng đang xem (hiện ở cột phải trên màn hình lớn, dưới lịch trên màn hình nhỏ).
 function MonthSummary({ entries, moods, t }) {
@@ -419,3 +467,5 @@ function MonthSummary({ entries, moods, t }) {
     </aside>
   );
 }
+=======
+>>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546

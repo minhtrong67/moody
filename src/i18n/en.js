@@ -205,6 +205,7 @@ export default {
   'settings.importErr.invalid': 'The JSON file has an unexpected structure.',
   'settings.importErr.read': 'Could not read the file. Please check its format.',
   'settings.importErr.write': 'Could not save the imported data. Please try again.',
+<<<<<<< HEAD
   'history.monthSummary': 'This month at a glance',
   'history.monthDays': 'Days checked in',
   'history.monthAvg': 'Average mood',
@@ -235,6 +236,8 @@ export default {
   'login.footer': 'Moody — your personal mood journal',
   'checkin.moodTitle': 'How are you today?',
   'checkin.detailsTitle': 'Details',
+=======
+>>>>>>> 48fe23bae97abbe87a88efacb09fa315539c6546
   'settings.credit': 'Developed by {author}, with help from Claude.',
 
   'manage.emoji': 'Emoji',
